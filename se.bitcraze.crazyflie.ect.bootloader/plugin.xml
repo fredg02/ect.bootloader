@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+
+   <extension
+         point="org.eclipse.ui.commands">
+      <category
+            name="Eclipse Crazyflie Tools"
+            id="se.bitcraze.crazyflie.ect.bootloader.commands.category">
+      </category>
+      <command
+            name="Start Bootloader"
+            categoryId="se.bitcraze.crazyflie.ect.bootloader.commands.category"
+            id="se.bitcraze.crazyflie.ect.bootloader.commands.startBootloader">
+      </command>
+   </extension>
+   <extension
+         point="org.eclipse.ui.handlers">
+      <handler
+            commandId="se.bitcraze.crazyflie.ect.bootloader.commands.startBootloader"
+            class="se.bitcraze.crazyflie.ect.bootloader.handlers.StartBootloaderHandler">
+      </handler>
+   </extension>
+   <extension
+         point="org.eclipse.ui.bindings">
+      <key
+            commandId="se.bitcraze.crazyflie.ect.bootloader.commands.startBootloader"
+            contextId="org.eclipse.ui.contexts.window"
+            sequence="M1+6"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration">
+      </key>
+   </extension>
+   <extension
+         point="org.eclipse.ui.menus">
+      <menuContribution
+            locationURI="menu:org.eclipse.ui.main.menu?after=additions">
+         <menu
+               label="Tools"
+               mnemonic="T"
+               id="se.bitcraze.crazyflie.ect.bootloader.menus.sampleMenu">
+            <command
+                  commandId="se.bitcraze.crazyflie.ect.bootloader.commands.startBootloader"
+                  mnemonic="S"
+                  id="se.bitcraze.crazyflie.ect.bootloader.menus.startBootloader">
+            </command>
+         </menu>
+      </menuContribution>
+      <menuContribution
+            locationURI="toolbar:org.eclipse.ui.main.toolbar?after=additions">
+         <toolbar
+               id="se.bitcraze.crazyflie.ect.bootloader.toolbars.crazyflieToolbar">
+            <command
+                  commandId="se.bitcraze.crazyflie.ect.bootloader.commands.startBootloader"
+                  icon="icons/bc_logo.png"
+                  tooltip="Start Bootloader"
+                  id="se.bitcraze.crazyflie.ect.bootloader.toolbars.startBootloader">
+            </command>
+         </toolbar>
+      </menuContribution>
+   </extension>
+
+</plugin>

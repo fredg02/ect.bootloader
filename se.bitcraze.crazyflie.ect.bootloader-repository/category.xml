@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<site>
+   <feature url="features/se.bitcraze.crazyflie.ect.bootloader.feature_1.0.0.qualifier.jar" id="se.bitcraze.crazyflie.ect.bootloader.feature" version="0.0.0">
+      <category name="ect.bootloader"/>
+   </feature>
+   <category-def name="ect.bootloader" label="ECT Bootloader">
+      <description>
+         Eclipse Crazyflie Tools - Bootloader Wizard
+      </description>
+   </category-def>
+</site>
