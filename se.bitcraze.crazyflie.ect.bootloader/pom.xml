@@ -14,12 +14,4 @@
 	<version>0.0.1-SNAPSHOT</version>
 	<packaging>eclipse-plugin</packaging>
 
-	<dependencies>
-		<dependency>
-			<groupId>se.bitcraze</groupId>
-			<artifactId>se.bitcraze.crazyflie.lib</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
-		</dependency>
-	</dependencies>
-
 </project>

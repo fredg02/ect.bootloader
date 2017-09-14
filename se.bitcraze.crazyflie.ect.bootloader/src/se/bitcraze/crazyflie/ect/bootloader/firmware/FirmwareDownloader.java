@@ -14,6 +14,8 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -25,26 +27,33 @@ import se.bitcraze.crazyflie.lib.bootloader.Bootloader;
 public class FirmwareDownloader {
 
     public static final String RELEASES_URL = "https://api.github.com/repos/bitcraze/crazyflie-release/releases";
-    public static final String RELEASES_DIR = "crazyflie-firmware";
-    public static final String RELEASES_JSON = "cf_releases.json";
-    private static final long MAX_FILE_AGE = 21600000; // 21600 seconds => 6 hours
+    public static final String RELEASES_DIR = "crazyflie-firmware"; // name of local directory where the JSON file and the firmware binaries are stored
+    public static final String RELEASES_JSON = "cf_releases.json"; // name of the local JSON file
 
+    private static final Logger mLogger = LoggerFactory.getLogger("FirmwareDownloader");
+    private static final long MAX_FILE_AGE = 21600000; // 21600000 milliseconds => 6 hours
     private File releasesFile = new File(RELEASES_DIR, RELEASES_JSON);
-
     private List<Firmware> mFirmwares = new ArrayList<Firmware>();
 
     public FirmwareDownloader() {
+        //Intentionally left blank
     }
 
+    /**
+     * Query GitHub API and download a JSON file from crazyflie-release GitHub repo
+     * that contains all releases. Skip download when the file is already downloaded
+     * and not too old. Load the local file and parse the JSON.
+     * 
+     */
     public void checkForFirmwareUpdate() {
-        System.out.println("FirmwareDownloader: Checking for updates...");
+        mLogger.info("Checking for updates...");
         if (!isFileAlreadyDownloaded(RELEASES_JSON) || isReleasesFileTooOld()) {
-            System.out.println("FirmwareDownloader: Downloading releases file...");
+            mLogger.info("Downloading releases file...");
             downloadFile(RELEASES_URL, RELEASES_JSON);
-            System.out.println("FirmwareDownloader: Releases file downloaded.");
+            mLogger.info("Releases file downloaded.");
         }
         loadLocalReleasesFile();
-        System.out.println("FirmwareDownloader: Found " + mFirmwares.size() + " firmware files.");
+        mLogger.info("Found {} firmware files.", mFirmwares.size());
     }
 
     private boolean isFileAlreadyDownloaded(String path) {
@@ -52,7 +61,7 @@ public class FirmwareDownloader {
         return file.exists() && file.length() > 0;
     }
 
-    private boolean isReleasesFileTooOld () {
+    private boolean isReleasesFileTooOld() {
         if (releasesFile.exists() && releasesFile.length() > 0) {
             return System.currentTimeMillis() - releasesFile.lastModified() > MAX_FILE_AGE;
         }
@@ -60,76 +69,92 @@ public class FirmwareDownloader {
     }
 
     private void loadLocalReleasesFile() {
-        System.out.println("FirmwareDownloader: Loading local releases file...");
+        mLogger.info("Loading local releases file...");
         try {
             String input = new String(Bootloader.readFile(releasesFile));
-            System.out.println("FirmwareDownloader: Releases JSON loaded from local file.");
+            mLogger.info("Local releases file loaded.");
             mFirmwares = parseJson(input);
         } catch (IOException ioe) {
-            System.out.println("FirmwareDownloader: Problems loading JSON file.");
+            mLogger.error(ioe.getMessage());
         }
     }
 
-    public void downloadFirmware(Firmware selectedFirmware) throws IOException {
-        if (selectedFirmware != null) {
-            //TODO: if asset does not exist
-            System.out.println("FirmwareDownloader: Downloading firmware " + selectedFirmware.getTagName() + "...");
-            if (isFileAlreadyDownloaded(selectedFirmware.getTagName() + "/" + selectedFirmware.getAssetName())) {
+    /**
+     * Download the corresponding binary (e.g Zip file) of the specified firmware
+     * 
+     * @param selectedFw
+     * @throws IOException
+     */
+    public void downloadFirmware(Firmware selectedFw) throws IOException {
+        if (selectedFw != null) {
+            if (isFileAlreadyDownloaded(selectedFw.getAssetName())) {
+                mLogger.info("Firmware {} found locally. Skipping download.", selectedFw.getTagName());
                 return;
             }
-            String browserDownloadUrl = selectedFirmware.getBrowserDownloadUrl();
-            downloadFile(browserDownloadUrl, selectedFirmware.getAssetName());
+            mLogger.info("Downloading firmware {}...", selectedFw.getTagName());
+            downloadFile(selectedFw.getBrowserDownloadUrl(), selectedFw.getAssetName());
         } else {
-            System.out.println("FirmwareDownloader: Selected firmware does not have assets.");
+            mLogger.info("Selected firmware does not have assets.");
             return;
         }
     }
 
     private void downloadFile(String url, String filename) {
-        System.out.println("FirmwareDownloader: Downloading file " + filename + "...");
+        mLogger.info("Downloading file {}...", filename);
         CloseableHttpClient client = HttpClients.createDefault();
         try (CloseableHttpResponse response = client.execute(new HttpGet(url))) {
             StatusLine statusLine = response.getStatusLine();
             int statusCode = statusLine.getStatusCode();
-            System.out.println("FirmwareDownloader: The status code is: " + statusCode);
+            mLogger.info("Status code: {}", statusCode);
             HttpEntity entity = response.getEntity();
             if (entity != null) {
                 writeFile(new File(RELEASES_DIR, filename), entity);
             }
-        } catch (ClientProtocolException e1) {
-            e1.printStackTrace();
-        } catch (IOException e1) {
-            e1.printStackTrace();
+        } catch (ClientProtocolException cpe) {
+            mLogger.error(cpe.getMessage());
+        } catch (IOException ioe) {
+            mLogger.error(ioe.getMessage());
         }
     }
 
     private void writeFile(File file, HttpEntity entity) {
-        System.out.println("FirmwareDownloader: Writing file " + file + "...");
+        mLogger.info("Writing file {}...", file);
         File releasesDir = new File(RELEASES_DIR);
         releasesDir.mkdirs();
         try (FileOutputStream outstream = new FileOutputStream(file)) {
             entity.writeTo(outstream);
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (FileNotFoundException fnfe) {
+            mLogger.error(fnfe.getMessage());
+        } catch (IOException ioe) {
+            mLogger.error(ioe.getMessage());
         }
     }
-    
+
+    /**
+     * Parses the JSON file
+     * 
+     * A release can have more than one Zip file attached (asset).<br/>
+     * For every Zip file, a {@code firmware} object is created. 
+     * 
+     * 
+     * @param input
+     * @return
+     * @throws JsonProcessingException
+     * @throws IOException
+     */
     private List<Firmware> parseJson(String input) throws JsonProcessingException, IOException {
+        mLogger.info("Parsing JSON file...");
         List<Firmware> firmwares = new ArrayList<Firmware>();
         ObjectMapper mapper = new ObjectMapper();
         JsonNode root = mapper.readTree(input);
-        ArrayNode array;
         if (root.isArray()) {
-            array = (ArrayNode) root;
+            ArrayNode array = (ArrayNode) root;
             for (int i = 0; i < array.size(); i++) {
                 JsonNode releaseObject = array.get(i);
                 String tagName = releaseObject.get("tag_name").asText();
                 String name = releaseObject.get("name").asText();
                 String createdAt = releaseObject.get("created_at").asText();
                 String body = releaseObject.get("body").asText();
-
                 ArrayNode assetsArray = (ArrayNode) releaseObject.get("assets");
                 if (assetsArray != null && assetsArray.size() > 0) {
                     for (int n = 0; n < assetsArray.size(); n++) {
@@ -148,12 +173,11 @@ public class FirmwareDownloader {
                     }
                 } else {
                     // Filter out firmwares without assets
-                    System.out.println("FirmwareDownloader: Firmware " + tagName + " was filtered out, because it has no assets.");
+                    mLogger.info("Firmware {} was filtered out, because it has no assets.", tagName);
                 }
-
             }
         } else {
-            System.out.println("FirmwareDownloader: JSON root node is not an array!");
+            mLogger.error("JSON root node is not an array!");
         }
         return firmwares;
     }

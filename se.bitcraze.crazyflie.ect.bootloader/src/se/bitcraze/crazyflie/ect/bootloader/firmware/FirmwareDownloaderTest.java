@@ -18,18 +18,17 @@ public class FirmwareDownloaderTest {
             fwFile.delete();
         }
         assertTrue(!fwFile.exists());
-        
+
         // download firmware - 1st time
         FirmwareDownloader fwDownloader = new FirmwareDownloader();
         fwDownloader.checkForFirmwareUpdate();
-        
         assertTrue(!fwDownloader.getFirmwares().isEmpty());
-        
+
         System.out.println();
 
         // download firmware - 2nd time
         fwDownloader.checkForFirmwareUpdate();
-        
+
         System.out.println();
         // list firmwares
         List<Firmware> firmwares = fwDownloader.getFirmwares();
@@ -43,10 +42,10 @@ public class FirmwareDownloaderTest {
     public void testDownloadFirmware() throws IOException {
         Firmware testFw = new Firmware("2017.06", "2017.06", "2017-06-29");
         testFw.setAsset("crazyflie-2017.06.zip", 355883, "https://github.com/bitcraze/crazyflie-release/releases/download/2017.06/crazyflie-2017.06.zip");
-        
+
         FirmwareDownloader fwDownloader = new FirmwareDownloader();
         fwDownloader.downloadFirmware(testFw);
-        
+
         File firmwareFile = new File(FirmwareDownloader.RELEASES_DIR, testFw.getAssetName());
         assertTrue("Firmware file is missing.", firmwareFile.exists());
         assertTrue("Firmware file is empty.", firmwareFile.length() > 0);
