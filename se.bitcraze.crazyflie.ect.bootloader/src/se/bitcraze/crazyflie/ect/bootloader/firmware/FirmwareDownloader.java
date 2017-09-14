@@ -1,21 +1,19 @@
 package se.bitcraze.crazyflie.ect.bootloader.firmware;
 
-import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.StatusLine;
+import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
-import org.apache.http.util.EntityUtils;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -41,16 +39,17 @@ public class FirmwareDownloader {
     public void checkForFirmwareUpdate() {
         System.out.println("FirmwareDownloader: Checking for updates...");
         if (!isFileAlreadyDownloaded(RELEASES_JSON) || isReleasesFileTooOld()) {
-            downloadReleasesFile();
-        } else {
-            loadLocalReleasesFile();
+            System.out.println("FirmwareDownloader: Downloading releases file...");
+            downloadFile(RELEASES_URL, RELEASES_JSON);
+            System.out.println("FirmwareDownloader: Releases file downloaded.");
         }
+        loadLocalReleasesFile();
         System.out.println("FirmwareDownloader: Found " + mFirmwares.size() + " firmware files.");
     }
 
     private boolean isFileAlreadyDownloaded(String path) {
-        File firmwareFile = new File(RELEASES_DIR, path);
-        return firmwareFile.exists() && firmwareFile.length() > 0;
+        File file = new File(RELEASES_DIR, path);
+        return file.exists() && file.length() > 0;
     }
 
     private boolean isReleasesFileTooOld () {
@@ -60,113 +59,63 @@ public class FirmwareDownloader {
         return false;
     }
 
-    private void downloadReleasesFile() {
-        String input = null;
-        try {
-            input = downloadUrl(RELEASES_URL);
-            System.out.println("FirmwareDownloader: Releases JSON downloaded.");
-            mFirmwares = parseJson(input);
-        } catch (IOException ioe) {
-//                Log.d(LOG_TAG, ioe.getMessage());
-            System.out.println("FirmwareDownloader: Unable to retrieve web page. Check your connectivity.");
-//                } catch (JSONException je) {
-//                  Log.d(LOG_TAG, je.getMessage());
-//                  System.out.println("FirmwareDownloader: Error during parsing JSON content.");
-        }
-
-        // Write JSON to disk
-        try {
-            writeFile(input, RELEASES_JSON);
-//                Log.d(LOG_TAG, "Wrote JSON file.");
-        } catch (IOException ioe) {
-//                Log.d(LOG_TAG, ioe.getMessage());
-            System.out.println("FirmwareDownloader: Unable to save JSON file.");
-        }
-    }
-
     private void loadLocalReleasesFile() {
+        System.out.println("FirmwareDownloader: Loading local releases file...");
         try {
             String input = new String(Bootloader.readFile(releasesFile));
             System.out.println("FirmwareDownloader: Releases JSON loaded from local file.");
             mFirmwares = parseJson(input);
-//        } catch (JSONException jsone) {
-//            Log.d(LOG_TAG, jsone.getMessage());
-//            System.out.println("FirmwareDownloader: Error while parsing JSON content.");
         } catch (IOException ioe) {
-//            Log.d(LOG_TAG, ioe.getMessage());
             System.out.println("FirmwareDownloader: Problems loading JSON file.");
         }
-    }
-
-    private void writeFile(String input, String filename) throws IOException {
-        File releasesDir = new File(RELEASES_DIR);
-        releasesDir.mkdirs();
-        if (!releasesFile.exists()) {
-            releasesFile.createNewFile();
-        }
-        PrintWriter out = new PrintWriter(releasesFile);
-        out.println(input);
-        out.flush();
-        out.close();
     }
 
     public void downloadFirmware(Firmware selectedFirmware) throws IOException {
         if (selectedFirmware != null) {
             //TODO: if asset does not exist
-            
+            System.out.println("FirmwareDownloader: Downloading firmware " + selectedFirmware.getTagName() + "...");
             if (isFileAlreadyDownloaded(selectedFirmware.getTagName() + "/" + selectedFirmware.getAssetName())) {
                 return;
             }
-
             String browserDownloadUrl = selectedFirmware.getBrowserDownloadUrl();
-            String downloadedFw = downloadUrl(browserDownloadUrl);
-            if (downloadedFw != null) {
-                writeFile(downloadedFw, selectedFirmware.getAssetName());
-            } else {
-                System.out.println("FirmwareDownloader: Empty download.");
-            }
+            downloadFile(browserDownloadUrl, selectedFirmware.getAssetName());
         } else {
             System.out.println("FirmwareDownloader: Selected firmware does not have assets.");
             return;
         }
     }
 
-    private String downloadUrl(String myUrl) throws IOException {
-        BufferedReader reader = null;
-        StringBuilder builder = new StringBuilder();
-        
-        CloseableHttpClient httpclient = HttpClients.createDefault();
-        HttpGet httpGet = new HttpGet(myUrl);
-        CloseableHttpResponse response = httpclient.execute(httpGet);
-        
-        try {
+    private void downloadFile(String url, String filename) {
+        System.out.println("FirmwareDownloader: Downloading file " + filename + "...");
+        CloseableHttpClient client = HttpClients.createDefault();
+        try (CloseableHttpResponse response = client.execute(new HttpGet(url))) {
             StatusLine statusLine = response.getStatusLine();
             int statusCode = statusLine.getStatusCode();
-
-            if (statusCode == 200) {
-                HttpEntity entity = response.getEntity();
-                InputStream content = entity.getContent();
-                reader = new BufferedReader(new InputStreamReader(content, "UTF-8"));
-
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    builder.append(line);
-                }
-                EntityUtils.consume(entity);
-            } else {
-                System.out.println("FirmwareDownloader: The response is: " + response);
-                return "The response is: " + response;
+            System.out.println("FirmwareDownloader: The status code is: " + statusCode);
+            HttpEntity entity = response.getEntity();
+            if (entity != null) {
+                writeFile(new File(RELEASES_DIR, filename), entity);
             }
-        } finally {
-            response.close();
-            // Makes sure that the InputStream is closed after the app is finished using it.
-            if (reader != null) {
-                reader.close();
-            }
+        } catch (ClientProtocolException e1) {
+            e1.printStackTrace();
+        } catch (IOException e1) {
+            e1.printStackTrace();
         }
-        return builder.toString();
     }
 
+    private void writeFile(File file, HttpEntity entity) {
+        System.out.println("FirmwareDownloader: Writing file " + file + "...");
+        File releasesDir = new File(RELEASES_DIR);
+        releasesDir.mkdirs();
+        try (FileOutputStream outstream = new FileOutputStream(file)) {
+            entity.writeTo(outstream);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    
     private List<Firmware> parseJson(String input) throws JsonProcessingException, IOException {
         List<Firmware> firmwares = new ArrayList<Firmware>();
         ObjectMapper mapper = new ObjectMapper();
