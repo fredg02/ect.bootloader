@@ -138,8 +138,7 @@ public class Firmware implements Comparable<Firmware> {
     @Override
     public String toString() {
         return "Firmware [mTagName=" + mTagName + ", mName=" + mName + ", mCreatedAt=" + mCreatedAt + ", mAssetName="
-                + mAssetName + ", mSize=" + mSize + ", mBrowserDownloadUrl=" + mBrowserDownloadUrl + ", mReleaseNotes="
-                + mReleaseNotes + "]";
+                + mAssetName + ", mSize=" + mSize + ", mBrowserDownloadUrl=" + mBrowserDownloadUrl + "]";
     }
 
     @Override
