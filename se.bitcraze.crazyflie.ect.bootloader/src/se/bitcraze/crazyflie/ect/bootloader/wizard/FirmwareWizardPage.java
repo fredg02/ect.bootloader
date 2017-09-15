@@ -198,11 +198,11 @@ public class FirmwareWizardPage extends WizardPage {
     }
 
     private void fillOfficialFwComboBox() {
-        FirmwareDownloader firmwareDownloader = new FirmwareDownloader();
+        FirmwareDownloader fwDownloader = new FirmwareDownloader();
         if (allFirmwares.isEmpty()) {
             //TODO: async!!
-            firmwareDownloader.checkForFirmwareUpdate();
-            allFirmwares = firmwareDownloader.getFirmwares();
+            fwDownloader.checkForFirmwareUpdate();
+            allFirmwares = fwDownloader.getFirmwares();
         }
         //TODO: if empty or error => show error message
 
@@ -221,8 +221,14 @@ public class FirmwareWizardPage extends WizardPage {
             String info = fw.getInfo() + "\t";
             officialFwCombo.add(fw.getTagName() + "\t\t" + info + fw.getCreatedAt());
         }
-        officialFwCombo.select(0);
-        mSelectedFirmware = mFilteredFirmwares.get(0);
+        if (!mFilteredFirmwares.isEmpty()) {
+            officialFwCombo.select(0);
+            officialFwCombo.notifyListeners(SWT.Selection, new Event());
+            mSelectedFirmware = mFilteredFirmwares.get(0);
+            setErrorMessage(null);
+        } else {
+            setErrorMessage("There is problem with the list of official firmwares.");
+        }
     }
 
     private void checkCustomFirmware() {
