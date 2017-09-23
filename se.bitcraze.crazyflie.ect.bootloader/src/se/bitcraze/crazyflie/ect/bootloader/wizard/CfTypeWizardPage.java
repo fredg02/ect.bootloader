@@ -16,11 +16,11 @@ import org.eclipse.swt.widgets.Composite;
  */
 public class CfTypeWizardPage extends WizardPage {
 
-    private static final String CF1 = "CF1";
-    private static final String CF2 = "CF2";
+    public static final String CF1 = "CF1";
+    public static final String CF2 = "CF2";
 
-    private Button btnRadioCf1;
-    private Button btnRadioCf2;
+    private Button radioCf1Button;
+    private Button radioCf2Button;
 
     /**
      * Create the wizard.
@@ -41,15 +41,15 @@ public class CfTypeWizardPage extends WizardPage {
         setControl(container);
         container.setLayout(new RowLayout(SWT.VERTICAL));
         
-        btnRadioCf1 = new Button(container, SWT.RADIO);
-        btnRadioCf1.setText("Crazyflie 1.0");
+        radioCf1Button = new Button(container, SWT.RADIO);
+        radioCf1Button.setText("Crazyflie 1.0 (CF1)");
         
-        btnRadioCf2 = new Button(container, SWT.RADIO);
-        btnRadioCf2.setSelection(true);
-        btnRadioCf2.setText("Crazyflie 2.0");
+        radioCf2Button = new Button(container, SWT.RADIO);
+        radioCf2Button.setSelection(true);
+        radioCf2Button.setText("Crazyflie 2.0 (CF2)");
     }
 
     public String getCfType() {
-        return btnRadioCf2.getSelection() ? CF2 : CF1;
+        return radioCf2Button.getSelection() ? CF2 : CF1;
     }
 }

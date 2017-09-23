@@ -9,13 +9,15 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.ProgressBar;
-import org.eclipse.swt.widgets.Text;
 
 import se.bitcraze.crazyflie.ect.bootloader.firmware.Firmware;
 import se.bitcraze.crazyflie.ect.bootloader.firmware.FirmwareDownloader;
@@ -25,19 +27,25 @@ import se.bitcraze.crazyflie.lib.crazyradio.Crazyradio;
 import se.bitcraze.crazyflie.lib.crazyradio.RadioDriver;
 import se.bitcraze.crazyflie.lib.usb.UsbLinkJava;
 
+/**
+ * Wizard page where the firmware is flashed
+ * 
+ * @author Frederic Gurr
+ *
+ */
 public class BootloaderWizardPage extends WizardPage {
     private FirmwareWizardPage pageTwo;
-    private String cfType;
     private Firmware selectedOfficialFirmware;
     private File customFirmwareFile;
 
-    private Label cfTypeLabel;
-    private Label fwImageLabel;
-    private ProgressBar progressBar; 
-    private Text textBox;
+    private Label cfTypeValueLabel;
+    private Label fwImageValueLabel;
+    private ProgressBar progressBar;
+    private StyledText console;
 
     private Bootloader bootloader;
     private Job downloadJob;
+
     /**
      * Create the wizard.
      */
@@ -53,36 +61,55 @@ public class BootloaderWizardPage extends WizardPage {
      */
     public void createControl(Composite parent) {
         Composite container = new Composite(parent, SWT.NULL);
+        container.setLayout(new GridLayout(2, false));
 
         setControl(container);
 
-        cfTypeLabel = new Label(container, SWT.NONE);
-        cfTypeLabel.setBounds(10, 10, 192, 15);
-        cfTypeLabel.setText("Crazyflie type: ");
+        Label cfTypeLabel = new Label(container, SWT.NONE);
+        GridData gd_cfTypeLabel = new GridData(SWT.LEFT, SWT.CENTER, false, false);
+        gd_cfTypeLabel.widthHint = 120;
+        cfTypeLabel.setLayoutData(gd_cfTypeLabel);
+        cfTypeLabel.setText("Crazyflie type:");
 
-        fwImageLabel = new Label(container, SWT.NONE);
-        fwImageLabel.setBounds(10, 37, 305, 15);
-        fwImageLabel.setText("Firmware image: ");
-        
-        Label lblCfTypeValue = new Label(container, SWT.NONE);
-        lblCfTypeValue.setBounds(122, 10, 57, 15);
-        lblCfTypeValue.setText("");
-        
-        Label lblCfImageValue = new Label(container, SWT.NONE);
-        lblCfImageValue.setBounds(122, 37, 57, 15);
-        lblCfImageValue.setText("");
-        
+        cfTypeValueLabel = new Label(container, SWT.NONE);
+        GridData gd_cfTypeValueLabel = new GridData(SWT.LEFT, SWT.CENTER, true, false);
+        gd_cfTypeValueLabel.minimumWidth = 200;
+        cfTypeValueLabel.setLayoutData(gd_cfTypeValueLabel);
+        cfTypeValueLabel.setText("");
+
+        Label fwImageLabel = new Label(container, SWT.NONE);
+        GridData gd_fwImageLabel = new GridData(SWT.LEFT, SWT.CENTER, false, false);
+        gd_fwImageLabel.widthHint = 120;
+        fwImageLabel.setLayoutData(gd_fwImageLabel);
+        fwImageLabel.setText("Firmware file:");
+
+        fwImageValueLabel = new Label(container, SWT.NONE);
+        GridData gd_fwImageValueLabel = new GridData(SWT.LEFT, SWT.CENTER, true, false);
+        gd_fwImageValueLabel.minimumWidth = 200;
+        fwImageValueLabel.setLayoutData(gd_fwImageValueLabel);
+        fwImageValueLabel.setText("");
+
         progressBar = new ProgressBar(container, SWT.SMOOTH);
-        progressBar.setBounds(10, 123, 566, 20);
-        
-        textBox = new Text(container, SWT.MULTI | SWT.BORDER | SWT.WRAP | SWT.V_SCROLL);
-        textBox.setBounds(10, 152, 566, 141);
-        
-        Button btnFlashFirmware = new Button(container, SWT.NONE);
-        btnFlashFirmware.addSelectionListener(new SelectionAdapter() {
+        progressBar.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
+
+        console = new StyledText(container, SWT.MULTI | SWT.BORDER | SWT.WRAP | SWT.V_SCROLL);
+        GridData gd_console = new GridData(SWT.FILL, SWT.FILL, true, false, 2, 1);
+        gd_console.heightHint = 150;
+        gd_console.minimumHeight = 100;
+        console.setLayoutData(gd_console);
+        int padding = 5;
+        console.setMargins(padding, padding, padding, padding);
+        console.setAlwaysShowScrollBars(false);
+        console.setCaret(null);
+
+        Button flashFirmwareButton = new Button(container, SWT.NONE);
+        GridData gd_flashFirmwareButton = new GridData(SWT.RIGHT, SWT.CENTER, true, false, 2, 1);
+        gd_flashFirmwareButton.minimumWidth = 110;
+        flashFirmwareButton.setLayoutData(gd_flashFirmwareButton);
+        flashFirmwareButton.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
-                textBox.setText("");
+                console.setText("");
                 if (!pageTwo.isCustomFirmware()) {
                     downloadFirmware();
                 }
@@ -90,10 +117,8 @@ public class BootloaderWizardPage extends WizardPage {
                     flashFirmware();
                 }
             }
-
         });
-        btnFlashFirmware.setBounds(471, 312, 105, 24);
-        btnFlashFirmware.setText("Flash firmware");
+        flashFirmwareButton.setText("Flash firmware");
     }
 
     protected void downloadFirmware() {
@@ -128,7 +153,7 @@ public class BootloaderWizardPage extends WizardPage {
     private void flashFirmware() {
         FirmwareWizardPage pageTwo = (FirmwareWizardPage) getWizard().getPreviousPage(BootloaderWizardPage.this);
         boolean isCustomFw = pageTwo.isCustomFirmware();
-        
+
         Job flashJob = new Job("Flashing Crazyflie firmware...") {
             @Override
             protected IStatus run(IProgressMonitor monitor) {
@@ -200,8 +225,8 @@ public class BootloaderWizardPage extends WizardPage {
         appendConsole(cfversion);
 
         // check if firmware and CF are compatible
-        if (("CF2".equalsIgnoreCase(selectedOfficialFirmware.getType()) && !cfType2) ||
-            ("CF1".equalsIgnoreCase(selectedOfficialFirmware.getType()) && cfType2)) {
+        if ((CfTypeWizardPage.CF2.equalsIgnoreCase(selectedOfficialFirmware.getType()) && !cfType2) ||
+            (CfTypeWizardPage.CF1.equalsIgnoreCase(selectedOfficialFirmware.getType()) && cfType2)) {
             appendConsole("Incompatible firmware version.\n");
             return false;
         }
@@ -231,11 +256,11 @@ public class BootloaderWizardPage extends WizardPage {
     }
 
     private void appendConsole(String text) {
-        textBox.getDisplay().asyncExec(new Runnable() {
+        console.getDisplay().asyncExec(new Runnable() {
             @Override
             public void run() {
-                if(!textBox.isDisposed() ) {
-                    textBox.append(text);
+                if(!console.isDisposed() ) {
+                    console.append(text);
                 }
             }
         } );
@@ -247,8 +272,8 @@ public class BootloaderWizardPage extends WizardPage {
         if (visible) {
             CfTypeWizardPage pageOne = (CfTypeWizardPage) getWizard().getStartingPage();
             pageTwo = (FirmwareWizardPage) getWizard().getPreviousPage(this);
-            cfType = pageOne.getCfType();
-            cfTypeLabel.setText("Crazyflie type: " + cfType);
+            String cfType = pageOne.getCfType();
+            cfTypeValueLabel.setText(cfType);
             String firmwareText = "";
             if (pageTwo.isCustomFirmware()) {
                 customFirmwareFile = pageTwo.getFirmwareFile();
@@ -259,10 +284,8 @@ public class BootloaderWizardPage extends WizardPage {
                     firmwareText = selectedOfficialFirmware.getAssetName();
                 }
             }
-            
-            fwImageLabel.setText("Firmware image: " + firmwareText);
-            
-            textBox.setText("");
+            fwImageValueLabel.setText(firmwareText);
+            console.setText("");
             //TODO: reset progressbar?
         }
     }

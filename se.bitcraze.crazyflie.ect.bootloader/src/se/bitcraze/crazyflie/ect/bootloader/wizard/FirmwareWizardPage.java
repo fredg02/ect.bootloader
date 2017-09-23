@@ -33,6 +33,8 @@ import se.bitcraze.crazyflie.ect.bootloader.firmware.Firmware;
 import se.bitcraze.crazyflie.ect.bootloader.firmware.FirmwareDownloader;
 
 /**
+ * Wizard page where the firmware is selected 
+ * 
  * @author Frederic Gurr
  * 
  */
@@ -72,18 +74,19 @@ public class FirmwareWizardPage extends WizardPage {
      * @param parent
      */
     public void createControl(Composite parent) {
-        Composite container_1 = new Composite(parent, SWT.NULL);
+        Composite container = new Composite(parent, SWT.NULL);
 
-        setControl(container_1);
-        RowLayout rl_container_1 = new RowLayout(SWT.VERTICAL);
-        container_1.setLayout(rl_container_1);
+        setControl(container);
+        RowLayout rl_container = new RowLayout(SWT.VERTICAL);
+        container.setLayout(rl_container);
 
-        lblCfType = new Label(container_1, SWT.NONE);
+        lblCfType = new Label(container, SWT.NONE);
+        lblCfType.setLayoutData(new RowData(200, SWT.DEFAULT));
         lblCfType.setBounds(10, 10, 92, 15);
         lblCfType.setText("Crazyflie type: ");
-        
-        officialFwControls(container_1);
-        customFwControls(container_1);
+
+        officialFwControls(container);
+        customFwControls(container);
 
         // default selection
         officialFwRadioBtn.setSelection(true);
@@ -92,8 +95,8 @@ public class FirmwareWizardPage extends WizardPage {
         setPageComplete(false);
     }
 
-    private void officialFwControls(Composite container) {
-        officialFwRadioBtn = new Button(container, SWT.RADIO);
+    private void officialFwControls(Composite pContainer) {
+        officialFwRadioBtn = new Button(pContainer, SWT.RADIO);
         officialFwRadioBtn.setText("Official firmware");
         officialFwRadioBtn.addSelectionListener(new SelectionAdapter() {
             @Override
@@ -107,7 +110,7 @@ public class FirmwareWizardPage extends WizardPage {
             }
         });
 
-        Composite officialFwComposite = new Composite(container, SWT.NONE);
+        Composite officialFwComposite = new Composite(pContainer, SWT.NONE);
         officialFwComposite.setLayoutData(new RowData(500, SWT.DEFAULT));
         GridLayout gl_officialFwComposite = new GridLayout(2, false);
         gl_officialFwComposite.marginLeft = 10;
@@ -161,16 +164,13 @@ public class FirmwareWizardPage extends WizardPage {
         gd_text.minimumHeight = 150;
         officialFwReleaseNotesText.setLayoutData(gd_text);
         final int padding = 5;
-        officialFwReleaseNotesText.setLeftMargin(padding);
-        officialFwReleaseNotesText.setRightMargin(padding);
-        officialFwReleaseNotesText.setTopMargin(padding);
-        officialFwReleaseNotesText.setBottomMargin(padding);
+        officialFwReleaseNotesText.setMargins(padding, padding, padding, padding);
         officialFwReleaseNotesText.setAlwaysShowScrollBars(false);
         officialFwReleaseNotesText.setCaret(null);
     }
 
-    private void customFwControls(Composite container) {
-        customFwRadioBtn = new Button(container, SWT.RADIO);
+    private void customFwControls(Composite pContainer) {
+        customFwRadioBtn = new Button(pContainer, SWT.RADIO);
         customFwRadioBtn.setText("Custom firmware");
         customFwRadioBtn.addSelectionListener(new SelectionAdapter() {
             @Override
@@ -184,7 +184,7 @@ public class FirmwareWizardPage extends WizardPage {
             }
         });
 
-        Composite customFwComposite = new Composite(container, SWT.NONE);
+        Composite customFwComposite = new Composite(pContainer, SWT.NONE);
         customFwComposite.setLayoutData(new RowData(500, SWT.DEFAULT));
         GridLayout gl_customFwComposite = new GridLayout(4, false);
         gl_customFwComposite.marginLeft = 10;
@@ -330,7 +330,6 @@ public class FirmwareWizardPage extends WizardPage {
             CfTypeWizardPage pageOne = (CfTypeWizardPage) getWizard().getPreviousPage(this);
             cfType = pageOne.getCfType();
             lblCfType.setText("Crazyflie type: " + cfType);
-
             checkForFirmwareUpdates();
         }
     }
