@@ -18,8 +18,6 @@ import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.layout.RowData;
-import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
@@ -40,8 +38,8 @@ import se.bitcraze.crazyflie.ect.bootloader.firmware.FirmwareDownloader;
  */
 public class FirmwareWizardPage extends WizardPage {
 
-    private Label lblCfType;
     private String cfType;
+    private Label cfTypeValueLabel;
 
     private Button officialFwRadioBtn;
     private Combo officialFwCombo;
@@ -75,15 +73,21 @@ public class FirmwareWizardPage extends WizardPage {
      */
     public void createControl(Composite parent) {
         Composite container = new Composite(parent, SWT.NULL);
+        container.setLayout(new GridLayout(3, false));
 
         setControl(container);
-        RowLayout rl_container = new RowLayout(SWT.VERTICAL);
-        container.setLayout(rl_container);
 
-        lblCfType = new Label(container, SWT.NONE);
-        lblCfType.setLayoutData(new RowData(200, SWT.DEFAULT));
-        lblCfType.setBounds(10, 10, 92, 15);
-        lblCfType.setText("Crazyflie type: ");
+        Label cfTypeLabel = new Label(container, SWT.NONE);
+        GridData gd_cfTypeLabel = new GridData(SWT.LEFT, SWT.CENTER, false, false);
+        gd_cfTypeLabel.widthHint = 110;
+        cfTypeLabel.setLayoutData(gd_cfTypeLabel);
+        cfTypeLabel.setText("Crazyflie type:");
+
+        cfTypeValueLabel = new Label(container, SWT.NONE);
+        GridData gd_cfTypeValueLabel = new GridData(SWT.LEFT, SWT.CENTER, true, false, 2, 1);
+        gd_cfTypeValueLabel.minimumWidth = 200;
+        cfTypeValueLabel.setLayoutData(gd_cfTypeValueLabel);
+        cfTypeValueLabel.setText("");
 
         officialFwControls(container);
         customFwControls(container);
@@ -97,6 +101,9 @@ public class FirmwareWizardPage extends WizardPage {
 
     private void officialFwControls(Composite pContainer) {
         officialFwRadioBtn = new Button(pContainer, SWT.RADIO);
+        GridData gd_officialFwRadioBtn = new GridData(SWT.LEFT, SWT.CENTER, true, false, 3, 1);
+        gd_officialFwRadioBtn.verticalIndent = 10;
+        officialFwRadioBtn.setLayoutData(gd_officialFwRadioBtn);
         officialFwRadioBtn.setText("Official firmware");
         officialFwRadioBtn.addSelectionListener(new SelectionAdapter() {
             @Override
@@ -110,19 +117,16 @@ public class FirmwareWizardPage extends WizardPage {
             }
         });
 
-        Composite officialFwComposite = new Composite(pContainer, SWT.NONE);
-        officialFwComposite.setLayoutData(new RowData(500, SWT.DEFAULT));
-        GridLayout gl_officialFwComposite = new GridLayout(2, false);
-        gl_officialFwComposite.marginLeft = 10;
-        officialFwComposite.setLayout(gl_officialFwComposite);
-
-        Label officialFwReleaseNameLabel = new Label(officialFwComposite, SWT.NONE);
+        Label officialFwReleaseNameLabel = new Label(pContainer, SWT.NONE);
+        GridData gd_officialFwReleaseNameLabel = new GridData(SWT.LEFT, SWT.CENTER, true, false);
+        gd_officialFwReleaseNameLabel.horizontalIndent = 10;
+        officialFwReleaseNameLabel.setLayoutData(gd_officialFwReleaseNameLabel);
         officialFwReleaseNameLabel.setText("Name:");
 
-        officialFwCombo = new Combo(officialFwComposite, SWT.READ_ONLY);
-        GridData gd_officialFwCombo = new GridData(SWT.FILL, SWT.CENTER, true, true);
+        officialFwCombo = new Combo(pContainer, SWT.READ_ONLY);
+        GridData gd_officialFwCombo = new GridData(SWT.FILL, SWT.CENTER, true, true, 2, 1);
         gd_officialFwCombo.minimumWidth = 100;
-        gd_officialFwCombo.minimumHeight = 25;
+        gd_officialFwCombo.minimumHeight = 15;
         officialFwCombo.setLayoutData(gd_officialFwCombo);
 
         officialFwCombo.addListener(SWT.Selection, new Listener() {
@@ -143,24 +147,32 @@ public class FirmwareWizardPage extends WizardPage {
             }
         });
 
-        Label officialFwReleaseInfoLabel = new Label(officialFwComposite, SWT.NONE);
+        Label officialFwReleaseInfoLabel = new Label(pContainer, SWT.NONE);
+        GridData gd_officialFwReleaseInfoLabel = new GridData(SWT.LEFT, SWT.CENTER, false, false);
+        gd_officialFwReleaseInfoLabel.horizontalIndent = 10;
+        officialFwReleaseInfoLabel.setLayoutData(gd_officialFwReleaseInfoLabel);
         officialFwReleaseInfoLabel.setText("Info:");
-        officialFwReleaseInfoValueLabel = new Label(officialFwComposite, SWT.NONE);
-        officialFwReleaseInfoValueLabel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+        officialFwReleaseInfoValueLabel = new Label(pContainer, SWT.NONE);
+        officialFwReleaseInfoValueLabel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
         officialFwReleaseInfoValueLabel.setText("");
 
-        Label officialFwReleaseDateLabel = new Label(officialFwComposite, SWT.NONE);
+        Label officialFwReleaseDateLabel = new Label(pContainer, SWT.NONE);
+        GridData gd_officialFwReleaseDateLabel = new GridData(SWT.LEFT, SWT.CENTER, false, false);
+        gd_officialFwReleaseDateLabel.horizontalIndent = 10;
+        officialFwReleaseDateLabel.setLayoutData(gd_officialFwReleaseDateLabel);
         officialFwReleaseDateLabel.setText("Release date:");
-        officialFwReleaseDateValueLabel = new Label(officialFwComposite, SWT.NONE);
-        officialFwReleaseDateValueLabel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+        officialFwReleaseDateValueLabel = new Label(pContainer, SWT.NONE);
+        officialFwReleaseDateValueLabel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
         officialFwReleaseDateValueLabel.setText("");
 
-        Label officialFwReleaseNotesLabel = new Label(officialFwComposite, SWT.NONE);
-        officialFwReleaseNotesLabel.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false));
+        Label officialFwReleaseNotesLabel = new Label(pContainer, SWT.NONE);
+        GridData gd_officialFwReleaseNotesLabel = new GridData(SWT.LEFT, SWT.TOP, false, false);
+        gd_officialFwReleaseNotesLabel.horizontalIndent = 10;
+        officialFwReleaseNotesLabel.setLayoutData(gd_officialFwReleaseNotesLabel);
         officialFwReleaseNotesLabel.setText("Release notes:");
 
-        officialFwReleaseNotesText = new StyledText(officialFwComposite, SWT.BORDER | SWT.READ_ONLY | SWT.V_SCROLL | SWT.WRAP);
-        GridData gd_text = new GridData(SWT.FILL, SWT.CENTER, true, true);
+        officialFwReleaseNotesText = new StyledText(pContainer, SWT.BORDER | SWT.READ_ONLY | SWT.V_SCROLL | SWT.WRAP);
+        GridData gd_text = new GridData(SWT.FILL, SWT.CENTER, true, true, 2, 1);
         gd_text.minimumHeight = 150;
         officialFwReleaseNotesText.setLayoutData(gd_text);
         final int padding = 5;
@@ -171,6 +183,9 @@ public class FirmwareWizardPage extends WizardPage {
 
     private void customFwControls(Composite pContainer) {
         customFwRadioBtn = new Button(pContainer, SWT.RADIO);
+        GridData gd_customFwRadioBtn = new GridData(SWT.LEFT, SWT.CENTER, true, false, 3, 1);
+        gd_customFwRadioBtn.verticalIndent = 10;
+        customFwRadioBtn.setLayoutData(gd_customFwRadioBtn);
         customFwRadioBtn.setText("Custom firmware");
         customFwRadioBtn.addSelectionListener(new SelectionAdapter() {
             @Override
@@ -184,41 +199,35 @@ public class FirmwareWizardPage extends WizardPage {
             }
         });
 
-        Composite customFwComposite = new Composite(pContainer, SWT.NONE);
-        customFwComposite.setLayoutData(new RowData(500, SWT.DEFAULT));
-        GridLayout gl_customFwComposite = new GridLayout(4, false);
-        gl_customFwComposite.marginLeft = 10;
-        customFwComposite.setLayout(gl_customFwComposite);
-
-        Label customFwLocationLabel = new Label(customFwComposite, SWT.NONE);
-        GridData gd_customFwLocationLabel = new GridData(SWT.FILL, SWT.CENTER, true, true, 1, 1);
+        Label customFwLocationLabel = new Label(pContainer, SWT.NONE);
+        GridData gd_customFwLocationLabel = new GridData(SWT.FILL, SWT.CENTER, true, false);
+        gd_customFwLocationLabel.horizontalIndent = 10;
         gd_customFwLocationLabel.minimumWidth = 80;
         customFwLocationLabel.setLayoutData(gd_customFwLocationLabel);
         customFwLocationLabel.setText("Location:");
 
-        customFwFileText = new Text(customFwComposite, SWT.BORDER | SWT.SINGLE);
+        customFwFileText = new Text(pContainer, SWT.BORDER | SWT.SINGLE);
         GridData gd_customFwFileText = new GridData(SWT.FILL, SWT.CENTER, true, false);
         gd_customFwFileText.minimumWidth = 310;
         customFwFileText.setLayoutData(gd_customFwFileText);
         customFwFileText.setText(""); //?
         customFwFileText.addKeyListener(new KeyListener() {
-                @Override
-                public void keyPressed(KeyEvent e) {
+            @Override
+            public void keyPressed(KeyEvent e) {
+            }
+            @Override
+            public void keyReleased(KeyEvent e) {
+                if (!customFwFileText.getText().isEmpty()) {
+                    checkCustomFirmware();
                 }
-                @Override
-                public void keyReleased(KeyEvent e) {
-                    if (!customFwFileText.getText().isEmpty()) {
-                        checkCustomFirmware();
-                    }
-                }
+            }
         });
 
-        customFwBrowseButton = new Button(customFwComposite, SWT.NONE);
+        customFwBrowseButton = new Button(pContainer, SWT.NONE);
         GridData gd_customFwBrowseButton = new GridData(SWT.LEFT, SWT.CENTER, true, false);
         gd_customFwBrowseButton.minimumWidth = 80;
         customFwBrowseButton.setLayoutData(gd_customFwBrowseButton);
         customFwBrowseButton.setText("Browse...");
-        new Label(customFwComposite, SWT.NONE);
         customFwBrowseButton.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
@@ -329,7 +338,7 @@ public class FirmwareWizardPage extends WizardPage {
         if (visible) {
             CfTypeWizardPage pageOne = (CfTypeWizardPage) getWizard().getPreviousPage(this);
             cfType = pageOne.getCfType();
-            lblCfType.setText("Crazyflie type: " + cfType);
+            cfTypeValueLabel.setText(cfType);
             checkForFirmwareUpdates();
         }
     }
