@@ -5,9 +5,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.KeyListener;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -31,12 +31,6 @@ import se.bitcraze.crazyflie.ect.bootloader.firmware.FirmwareDownloader;
 /**
  * @author Frederic Gurr
  * 
- * TODO: 
- * - Fill combo
- * - Fix Layout
- * - Set image (top right corner)
- * 
- *
  */
 public class FirmwareWizardPage extends WizardPage {
 
@@ -45,7 +39,6 @@ public class FirmwareWizardPage extends WizardPage {
 
     private Button officialFwRadioBtn;
     private Combo officialFwCombo;
-    private Button officialFwReleaseNotesBtn;
 
     private Button customFwRadioBtn;
     private Text customFwFileText;
@@ -56,6 +49,10 @@ public class FirmwareWizardPage extends WizardPage {
 
     private Firmware mSelectedFirmware;
     private File mFirmwareFile;
+
+    private Label officialFwReleaseInfoValueLabel;
+    private Label officialFwReleaseDateValueLabel;
+    private StyledText officialFwReleaseNotesText;
 
     /**
      * Create the wizard.
@@ -75,7 +72,6 @@ public class FirmwareWizardPage extends WizardPage {
 
         setControl(container_1);
         RowLayout rl_container_1 = new RowLayout(SWT.VERTICAL);
-        rl_container_1.fill = true;
         container_1.setLayout(rl_container_1);
 
         lblCfType = new Label(container_1, SWT.NONE);
@@ -107,21 +103,31 @@ public class FirmwareWizardPage extends WizardPage {
             }
         });
 
-//        Composite composite = new Composite(container, SWT.NONE);
-//        RowLayout rl_composite = new RowLayout(SWT.VERTICAL);
-//        rl_composite.fill = true;
-//        composite.setLayout(rl_composite);
+        Composite officialFwComposite = new Composite(container, SWT.NONE);
+        officialFwComposite.setLayoutData(new RowData(500, SWT.DEFAULT));
+        GridLayout gl_officialFwComposite = new GridLayout(2, false);
+        gl_officialFwComposite.marginLeft = 10;
+        officialFwComposite.setLayout(gl_officialFwComposite);
 
-        officialFwCombo = new Combo(container, SWT.READ_ONLY);
+        Label officialFwReleaseNameLabel = new Label(officialFwComposite, SWT.NONE);
+        officialFwReleaseNameLabel.setText("Name:");
+
+        officialFwCombo = new Combo(officialFwComposite, SWT.READ_ONLY);
+        GridData gd_officialFwCombo = new GridData(SWT.FILL, SWT.CENTER, true, true);
+        gd_officialFwCombo.minimumWidth = 100;
+        gd_officialFwCombo.minimumHeight = 25;
+        officialFwCombo.setLayoutData(gd_officialFwCombo);
 
         officialFwCombo.addListener(SWT.Selection, new Listener() {
             public void handleEvent(Event event) {
                 if (officialFwRadioBtn.getSelection() && officialFwCombo.getSelectionIndex() != -1) {
                     mSelectedFirmware = mFilteredFirmwares.get(officialFwCombo.getSelectionIndex());
-                    if (mSelectedFirmware.getReleaseNotes().isEmpty()) {
-                        officialFwReleaseNotesBtn.setEnabled(false);
+                    officialFwReleaseInfoValueLabel.setText(mSelectedFirmware.getInfo());
+                    officialFwReleaseDateValueLabel.setText(mSelectedFirmware.getCreatedAt());
+                    if (!mSelectedFirmware.getReleaseNotes().isEmpty()) {
+                        officialFwReleaseNotesText.setText(mSelectedFirmware.getReleaseNotes());
                     } else {
-                        officialFwReleaseNotesBtn.setEnabled(true);
+                        officialFwReleaseNotesText.setText("");
                     }
                     setPageComplete(true);
                 } else {
@@ -129,19 +135,34 @@ public class FirmwareWizardPage extends WizardPage {
                 }
             }
         });
-        
-        officialFwReleaseNotesBtn = new Button(container, SWT.NONE);
-        officialFwReleaseNotesBtn.setText("Show release notes");
-        officialFwReleaseNotesBtn.addSelectionListener(new SelectionAdapter() {
-            @Override
-            public void widgetSelected(SelectionEvent e) {
-                String releaseNotes = "";
-                if (mSelectedFirmware != null) {
-                    releaseNotes = mSelectedFirmware.getReleaseNotes();
-                }
-                MessageDialog.openInformation(getShell(), "Release notes", releaseNotes);
-            }
-        });
+
+        Label officialFwReleaseInfoLabel = new Label(officialFwComposite, SWT.NONE);
+        officialFwReleaseInfoLabel.setText("Info:");
+        officialFwReleaseInfoValueLabel = new Label(officialFwComposite, SWT.NONE);
+        officialFwReleaseInfoValueLabel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+        officialFwReleaseInfoValueLabel.setText("");
+
+        Label officialFwReleaseDateLabel = new Label(officialFwComposite, SWT.NONE);
+        officialFwReleaseDateLabel.setText("Release date:");
+        officialFwReleaseDateValueLabel = new Label(officialFwComposite, SWT.NONE);
+        officialFwReleaseDateValueLabel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+        officialFwReleaseDateValueLabel.setText("");
+
+        Label officialFwReleaseNotesLabel = new Label(officialFwComposite, SWT.NONE);
+        officialFwReleaseNotesLabel.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false));
+        officialFwReleaseNotesLabel.setText("Release notes:");
+
+        officialFwReleaseNotesText = new StyledText(officialFwComposite, SWT.BORDER | SWT.READ_ONLY | SWT.V_SCROLL | SWT.WRAP);
+        GridData gd_text = new GridData(SWT.FILL, SWT.CENTER, true, true);
+        gd_text.minimumHeight = 150;
+        officialFwReleaseNotesText.setLayoutData(gd_text);
+        final int padding = 5;
+        officialFwReleaseNotesText.setLeftMargin(padding);
+        officialFwReleaseNotesText.setRightMargin(padding);
+        officialFwReleaseNotesText.setTopMargin(padding);
+        officialFwReleaseNotesText.setBottomMargin(padding);
+        officialFwReleaseNotesText.setAlwaysShowScrollBars(false);
+        officialFwReleaseNotesText.setCaret(null);
     }
 
     private void customFwControls(Composite container) {
@@ -159,13 +180,23 @@ public class FirmwareWizardPage extends WizardPage {
             }
         });
 
-        Composite customComposite = new Composite(container, SWT.NONE);
-        GridLayout layout = new GridLayout(2, false);
-        customComposite.setLayout(layout);
+        Composite customFwComposite = new Composite(container, SWT.NONE);
+        customFwComposite.setLayoutData(new RowData(500, SWT.DEFAULT));
+        GridLayout gl_customFwComposite = new GridLayout(4, false);
+        gl_customFwComposite.marginLeft = 10;
+        customFwComposite.setLayout(gl_customFwComposite);
 
-        customFwFileText = new Text(customComposite, SWT.BORDER | SWT.SINGLE);
+        Label customFwLocationLabel = new Label(customFwComposite, SWT.NONE);
+        GridData gd_customFwLocationLabel = new GridData(SWT.FILL, SWT.CENTER, true, true, 1, 1);
+        gd_customFwLocationLabel.minimumWidth = 80;
+        customFwLocationLabel.setLayoutData(gd_customFwLocationLabel);
+        customFwLocationLabel.setText("Location:");
+
+        customFwFileText = new Text(customFwComposite, SWT.BORDER | SWT.SINGLE);
+        GridData gd_customFwFileText = new GridData(SWT.FILL, SWT.CENTER, true, false);
+        gd_customFwFileText.minimumWidth = 310;
+        customFwFileText.setLayoutData(gd_customFwFileText);
         customFwFileText.setText(""); //?
-        customFwFileText.setLayoutData(new RowData(200, SWT.DEFAULT));
         customFwFileText.addKeyListener(new KeyListener() {
                 @Override
                 public void keyPressed(KeyEvent e) {
@@ -177,10 +208,13 @@ public class FirmwareWizardPage extends WizardPage {
                     }
                 }
         });
-        customFwFileText.setLayoutData(new GridData(GridData.FILL_HORIZONTAL, SWT.NONE, true, false));
 
-        customFwBrowseButton = new Button(customComposite, SWT.NONE);
+        customFwBrowseButton = new Button(customFwComposite, SWT.NONE);
+        GridData gd_customFwBrowseButton = new GridData(SWT.LEFT, SWT.CENTER, true, false);
+        gd_customFwBrowseButton.minimumWidth = 80;
+        customFwBrowseButton.setLayoutData(gd_customFwBrowseButton);
         customFwBrowseButton.setText("Browse...");
+        new Label(customFwComposite, SWT.NONE);
         customFwBrowseButton.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
@@ -208,20 +242,18 @@ public class FirmwareWizardPage extends WizardPage {
 
         // Filter firmwares according to selected Crazyflie type (CF1 or CF2)
         mFilteredFirmwares.clear();
+        officialFwCombo.removeAll();
         for (Firmware fw : allFirmwares) {
             if (cfType.equalsIgnoreCase(fw.getType()) || "CF1 & CF2".equalsIgnoreCase(fw.getType())) {
                 mFilteredFirmwares.add(fw);
             }
         }
-        // TODO: sort?
-        Collections.sort(mFilteredFirmwares);
-        Collections.reverse(mFilteredFirmwares);
-        officialFwCombo.removeAll();
-        for (Firmware fw : mFilteredFirmwares) {
-            String info = fw.getInfo() + "\t";
-            officialFwCombo.add(fw.getTagName() + "\t\t" + info + fw.getCreatedAt());
-        }
         if (!mFilteredFirmwares.isEmpty()) {
+            Collections.sort(mFilteredFirmwares);
+            Collections.reverse(mFilteredFirmwares);
+            for (Firmware fw : mFilteredFirmwares) {
+                officialFwCombo.add(fw.getTagName());
+            }
             officialFwCombo.select(0);
             officialFwCombo.notifyListeners(SWT.Selection, new Event());
             mSelectedFirmware = mFilteredFirmwares.get(0);
@@ -256,7 +288,9 @@ public class FirmwareWizardPage extends WizardPage {
 
     private void setEnablement(boolean officialEnabled) {
         officialFwCombo.setEnabled(officialEnabled);
-        officialFwReleaseNotesBtn.setEnabled(officialEnabled);
+        officialFwReleaseInfoValueLabel.setEnabled(officialEnabled);
+        officialFwReleaseDateValueLabel.setEnabled(officialEnabled);
+        officialFwReleaseNotesText.setEnabled(officialEnabled);
         customFwFileText.setEnabled(!officialEnabled);
         customFwBrowseButton.setEnabled(!officialEnabled);
     }
