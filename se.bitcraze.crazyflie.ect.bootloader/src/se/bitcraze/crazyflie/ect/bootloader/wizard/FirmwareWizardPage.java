@@ -43,10 +43,13 @@ public class FirmwareWizardPage extends WizardPage {
 
     private Button officialFwRadioBtn;
     private Combo officialFwCombo;
+    private Label officialFwReleaseDateValueLabel;
+    private StyledText officialFwReleaseNotesText;
 
     private Button customFwRadioBtn;
     private Text customFwFileText;
     private Button customFwBrowseButton;
+    private Button customNrfFwCheckButton;
 
     private List<Firmware> allFirmwares = new ArrayList<Firmware>();
     private List<Firmware> mFilteredFirmwares = new ArrayList<Firmware>();
@@ -54,8 +57,6 @@ public class FirmwareWizardPage extends WizardPage {
     private Firmware mSelectedFirmware;
     private File mFirmwareFile;
 
-    private Label officialFwReleaseDateValueLabel;
-    private StyledText officialFwReleaseNotesText;
 
     /**
      * Create the wizard.
@@ -91,9 +92,14 @@ public class FirmwareWizardPage extends WizardPage {
         officialFwControls(container);
         customFwControls(container);
 
-        // default selection
-        officialFwRadioBtn.setSelection(true);
-        setEnablement(true);
+        Label customNrfFwLabel = new Label(container, SWT.NONE);
+        GridData gd_customNrfFwLabel = new GridData(SWT.LEFT, SWT.CENTER, false, false);
+        gd_customNrfFwLabel.horizontalIndent = 10;
+        customNrfFwLabel.setLayoutData(gd_customNrfFwLabel);
+        customNrfFwLabel.setText("nRF51 firmware:");
+
+        customNrfFwCheckButton = new Button(container, SWT.CHECK);
+        customNrfFwCheckButton.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false, 2, 1));
 
         setPageComplete(false);
     }
@@ -162,7 +168,7 @@ public class FirmwareWizardPage extends WizardPage {
 
         officialFwReleaseNotesText = new StyledText(pContainer, SWT.BORDER | SWT.READ_ONLY | SWT.V_SCROLL | SWT.WRAP);
         GridData gd_text = new GridData(SWT.FILL, SWT.CENTER, true, true, 2, 1);
-        gd_text.minimumHeight = 150;
+        gd_text.minimumHeight = 130;
         officialFwReleaseNotesText.setLayoutData(gd_text);
         final int padding = 5;
         officialFwReleaseNotesText.setMargins(padding, padding, padding, padding);
@@ -308,6 +314,10 @@ public class FirmwareWizardPage extends WizardPage {
         return customFwRadioBtn.getSelection();
     }
 
+    public boolean isNrfFirmware() {
+        return customNrfFwCheckButton.getSelection();
+    }
+
     public File getFirmwareFile() {
         return mFirmwareFile;
     }
@@ -318,6 +328,7 @@ public class FirmwareWizardPage extends WizardPage {
         officialFwReleaseNotesText.setEnabled(officialEnabled);
         customFwFileText.setEnabled(!officialEnabled);
         customFwBrowseButton.setEnabled(!officialEnabled);
+        customNrfFwCheckButton.setEnabled(!officialEnabled);
     }
 
     @Override
@@ -327,6 +338,12 @@ public class FirmwareWizardPage extends WizardPage {
             CfTypeWizardPage pageOne = (CfTypeWizardPage) getWizard().getPreviousPage(this);
             cfType = pageOne.getCfType();
             cfTypeValueLabel.setText(cfType);
+
+            //default selection
+            officialFwRadioBtn.setSelection(true);
+            officialFwRadioBtn.notifyListeners(SWT.Selection, new Event());
+            customFwRadioBtn.setSelection(false);
+            
             checkForFirmwareUpdates();
         }
     }

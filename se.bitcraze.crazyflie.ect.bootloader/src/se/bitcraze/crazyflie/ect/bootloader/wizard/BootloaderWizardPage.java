@@ -159,6 +159,7 @@ public class BootloaderWizardPage extends WizardPage {
     private void flashFirmware() {
         FirmwareWizardPage pageTwo = (FirmwareWizardPage) getWizard().getPreviousPage(BootloaderWizardPage.this);
         boolean isCustomFw = pageTwo.isCustomFirmware();
+        boolean isNrfFw = pageTwo.isNrfFirmware();
 
         Job flashJob = new Job("Flashing Crazyflie firmware...") {
             @Override
@@ -201,7 +202,12 @@ public class BootloaderWizardPage extends WizardPage {
                 long startTime = System.currentTimeMillis();
                 boolean flashSuccessful;
                 try {
-                    flashSuccessful = bootloader.flash(firmwareFile);
+                    if (isCustomFw && isNrfFw) {
+                        appendConsole("Flashing nRF51 firmware...\n");
+                        flashSuccessful = bootloader.flash(firmwareFile, "nrf51");
+                    } else {
+                        flashSuccessful = bootloader.flash(firmwareFile);
+                    }
                 } catch (IOException ioe) {
                     ioe.printStackTrace();
                     flashSuccessful = false;
