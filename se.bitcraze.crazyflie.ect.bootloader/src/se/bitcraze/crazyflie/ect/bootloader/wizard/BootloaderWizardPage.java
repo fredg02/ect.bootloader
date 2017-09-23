@@ -103,7 +103,7 @@ public class BootloaderWizardPage extends WizardPage {
                 } catch (IOException e) {
                     e.printStackTrace();
                     appendConsole("Failed.\n");
-                    return Status.CANCEL_STATUS; // TODO: warum nicht error?
+                    return Status.CANCEL_STATUS;
                 }
                 appendConsole("Done.\n");
                 return Status.OK_STATUS;
@@ -122,7 +122,7 @@ public class BootloaderWizardPage extends WizardPage {
         FirmwareWizardPage pageTwo = (FirmwareWizardPage) getWizard().getPreviousPage(BootloaderWizardPage.this);
         boolean isCustomFw = pageTwo.isCustomFirmware();
         
-        Job job = new Job("Downloading Crazyflie firmware...") {
+        Job job = new Job("Flashing Crazyflie firmware...") {
             @Override
             protected IStatus run(IProgressMonitor monitor) {
                 //fail quickly, when Crazyradio is not connected
@@ -145,19 +145,8 @@ public class BootloaderWizardPage extends WizardPage {
                     return Status.CANCEL_STATUS;
                 }
 
-                //TODO: externalize
-                //Check if firmware is compatible with Crazyflie
-                int protocolVersion = bootloader.getProtocolVersion();
-                boolean cfType2 = !(protocolVersion == BootVersion.CF1_PROTO_VER_0 ||
-                                    protocolVersion == BootVersion.CF1_PROTO_VER_1);
-
-                String cfversion = "Found Crazyflie " + (cfType2 ? "2.0" : "1.0") + ".\n";
-                appendConsole(cfversion);
-
-                // check if firmware and CF are compatible
-                if (("CF2".equalsIgnoreCase(selectedOfficialFirmware.getType()) && !cfType2) ||
-                    ("CF1".equalsIgnoreCase(selectedOfficialFirmware.getType()) && cfType2)) {
-                    appendConsole("Incompatible firmware version.\n");
+                boolean firmwareCompatible = isFirmwareCompatible();
+                if (!firmwareCompatible) {
                     return Status.CANCEL_STATUS;
                 }
 
@@ -190,6 +179,28 @@ public class BootloaderWizardPage extends WizardPage {
         job.schedule();
     }
 
+    /**
+     * Check if firmware is compatible with Crazyflie
+     * 
+     * @return true if compatible, false otherwise
+     */
+    private boolean isFirmwareCompatible() {
+        int protocolVersion = bootloader.getProtocolVersion();
+        boolean cfType2 = !(protocolVersion == BootVersion.CF1_PROTO_VER_0 ||
+                            protocolVersion == BootVersion.CF1_PROTO_VER_1);
+
+        String cfversion = "Found Crazyflie " + (cfType2 ? "2.0" : "1.0") + ".\n";
+        appendConsole(cfversion);
+
+        // check if firmware and CF are compatible
+        if (("CF2".equalsIgnoreCase(selectedOfficialFirmware.getType()) && !cfType2) ||
+            ("CF1".equalsIgnoreCase(selectedOfficialFirmware.getType()) && cfType2)) {
+            appendConsole("Incompatible firmware version.\n");
+            return false;
+        }
+        return true;
+    }
+
     private void stopFlashProcess(boolean reset) {
         if (bootloader != null) {
             if (reset) {
@@ -197,9 +208,9 @@ public class BootloaderWizardPage extends WizardPage {
                 bootloader.resetToFirmware();
             }
             bootloader.close();
-//            progressBar.setProgress(0);
         }
     }
+
     private static boolean isCrazyradioAvailable() {
         UsbLinkJava usbLinkJava = new UsbLinkJava();
         try {
@@ -243,6 +254,9 @@ public class BootloaderWizardPage extends WizardPage {
             }
             
             lblFwImage.setText("Firmware image: " + firmwareText);
+            
+            textBox.setText("");
+            //TODO: reset progressbar?
         }
     }
 }
