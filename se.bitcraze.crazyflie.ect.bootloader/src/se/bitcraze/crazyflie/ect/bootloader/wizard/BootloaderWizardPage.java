@@ -17,7 +17,6 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.ProgressBar;
 
 import se.bitcraze.crazyflie.ect.bootloader.firmware.Firmware;
 import se.bitcraze.crazyflie.ect.bootloader.firmware.FirmwareDownloader;
@@ -40,8 +39,8 @@ public class BootloaderWizardPage extends WizardPage {
 
     private Label cfTypeValueLabel;
     private Label fwImageValueLabel;
-    private ProgressBar progressBar;
     private StyledText console;
+//    private ProgressBar progressBar;
 
     private Bootloader bootloader;
     private Job downloadJob;
@@ -67,7 +66,7 @@ public class BootloaderWizardPage extends WizardPage {
 
         Label cfTypeLabel = new Label(container, SWT.NONE);
         GridData gd_cfTypeLabel = new GridData(SWT.LEFT, SWT.CENTER, false, false);
-        gd_cfTypeLabel.widthHint = 120;
+        gd_cfTypeLabel.widthHint = 110;
         cfTypeLabel.setLayoutData(gd_cfTypeLabel);
         cfTypeLabel.setText("Crazyflie type:");
 
@@ -79,21 +78,19 @@ public class BootloaderWizardPage extends WizardPage {
 
         Label fwImageLabel = new Label(container, SWT.NONE);
         GridData gd_fwImageLabel = new GridData(SWT.LEFT, SWT.CENTER, false, false);
-        gd_fwImageLabel.widthHint = 120;
+        gd_fwImageLabel.widthHint = 110;
         fwImageLabel.setLayoutData(gd_fwImageLabel);
         fwImageLabel.setText("Firmware file:");
 
         fwImageValueLabel = new Label(container, SWT.NONE);
         GridData gd_fwImageValueLabel = new GridData(SWT.LEFT, SWT.CENTER, true, false);
-        gd_fwImageValueLabel.minimumWidth = 200;
+        gd_fwImageValueLabel.minimumWidth = 400;
         fwImageValueLabel.setLayoutData(gd_fwImageValueLabel);
         fwImageValueLabel.setText("");
 
-        progressBar = new ProgressBar(container, SWT.SMOOTH);
-        progressBar.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
-
         console = new StyledText(container, SWT.MULTI | SWT.BORDER | SWT.WRAP | SWT.V_SCROLL);
         GridData gd_console = new GridData(SWT.FILL, SWT.FILL, true, false, 2, 1);
+        gd_console.verticalIndent = 30;
         gd_console.heightHint = 150;
         gd_console.minimumHeight = 100;
         console.setLayoutData(gd_console);
@@ -101,6 +98,10 @@ public class BootloaderWizardPage extends WizardPage {
         console.setMargins(padding, padding, padding, padding);
         console.setAlwaysShowScrollBars(false);
         console.setCaret(null);
+
+        //FIXME
+//        progressBar = new ProgressBar(container, SWT.SMOOTH);
+//        progressBar.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
 
         Button flashFirmwareButton = new Button(container, SWT.NONE);
         GridData gd_flashFirmwareButton = new GridData(SWT.RIGHT, SWT.CENTER, true, false, 2, 1);
