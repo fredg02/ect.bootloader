@@ -6,7 +6,9 @@ import java.io.IOException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.IJobChangeEvent;
 import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.core.runtime.jobs.JobChangeAdapter;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StyledText;
@@ -41,6 +43,7 @@ public class BootloaderWizardPage extends WizardPage {
     private Label fwImageValueLabel;
     private StyledText console;
 //    private ProgressBar progressBar;
+    private Button flashFirmwareButton;
 
     private Bootloader bootloader;
     private Job downloadJob;
@@ -103,7 +106,7 @@ public class BootloaderWizardPage extends WizardPage {
 //        progressBar = new ProgressBar(container, SWT.SMOOTH);
 //        progressBar.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
 
-        Button flashFirmwareButton = new Button(container, SWT.NONE);
+        flashFirmwareButton = new Button(container, SWT.NONE);
         GridData gd_flashFirmwareButton = new GridData(SWT.RIGHT, SWT.CENTER, true, false, 2, 1);
         gd_flashFirmwareButton.minimumWidth = 110;
         flashFirmwareButton.setLayoutData(gd_flashFirmwareButton);
@@ -211,6 +214,28 @@ public class BootloaderWizardPage extends WizardPage {
             }
         };
         flashJob.setUser(true);
+        flashJob.addJobChangeListener(new JobChangeAdapter() {
+            
+            @Override
+            public void running(IJobChangeEvent event) {
+                flashFirmwareButton.getDisplay().asyncExec(new Runnable() {
+                    @Override
+                    public void run() {
+                        flashFirmwareButton.setEnabled(false);
+                    }
+                });
+            }
+            
+            @Override
+            public void done(IJobChangeEvent event) {
+                flashFirmwareButton.getDisplay().asyncExec(new Runnable() {
+                    @Override
+                    public void run() {
+                        flashFirmwareButton.setEnabled(true);
+                    }
+                });
+            }
+        });
         flashJob.schedule();
     }
 
@@ -289,6 +314,7 @@ public class BootloaderWizardPage extends WizardPage {
             }
             fwImageValueLabel.setText(firmwareText);
             console.setText("");
+            flashFirmwareButton.setEnabled(true);
             //TODO: reset progressbar?
         }
     }
