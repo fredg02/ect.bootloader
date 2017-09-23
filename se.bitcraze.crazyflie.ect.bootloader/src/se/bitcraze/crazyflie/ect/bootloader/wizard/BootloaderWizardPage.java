@@ -183,9 +183,11 @@ public class BootloaderWizardPage extends WizardPage {
                     return Status.CANCEL_STATUS;
                 }
 
-                boolean firmwareCompatible = isFirmwareCompatible();
-                if (!firmwareCompatible) {
-                    return Status.CANCEL_STATUS;
+                if (!isCustomFw) {
+                    boolean firmwareCompatible = isFirmwareCompatible();
+                    if (!firmwareCompatible) {
+                        return Status.CANCEL_STATUS;
+                    }
                 }
 
                 File firmwareFile;
@@ -201,7 +203,7 @@ public class BootloaderWizardPage extends WizardPage {
                 try {
                     flashSuccessful = bootloader.flash(firmwareFile);
                 } catch (IOException ioe) {
-                    //Log.e(LOG_TAG, ioe.getMessage());
+                    ioe.printStackTrace();
                     flashSuccessful = false;
                 }
                 String flashTime = "Flashing took " + (System.currentTimeMillis() - startTime)/1000 + " seconds.\n";
@@ -240,7 +242,7 @@ public class BootloaderWizardPage extends WizardPage {
     }
 
     /**
-     * Check if firmware is compatible with Crazyflie
+     * Check if official firmware is compatible with Crazyflie
      * 
      * @return true if compatible, false otherwise
      */
