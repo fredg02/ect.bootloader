@@ -26,16 +26,18 @@ import se.bitcraze.crazyflie.lib.crazyradio.RadioDriver;
 import se.bitcraze.crazyflie.lib.usb.UsbLinkJava;
 
 public class BootloaderWizardPage extends WizardPage {
+    private FirmwareWizardPage pageTwo;
     private String cfType;
+    private Firmware selectedOfficialFirmware;
+    private File customFirmwareFile;
+
+    private Label cfTypeLabel;
+    private Label fwImageLabel;
     private ProgressBar progressBar; 
     private Text textBox;
 
-    private File customFirmwareFile;
-    private Firmware selectedOfficialFirmware;
-    private Label lblCfType;
-    private Label lblFwImage;
-    private FirmwareWizardPage pageTwo;
-    protected Bootloader bootloader;
+    private Bootloader bootloader;
+    private Job downloadJob;
     /**
      * Create the wizard.
      */
@@ -54,13 +56,13 @@ public class BootloaderWizardPage extends WizardPage {
 
         setControl(container);
 
-        lblCfType = new Label(container, SWT.NONE);
-        lblCfType.setBounds(10, 10, 192, 15);
-        lblCfType.setText("Crazyflie type: ");
+        cfTypeLabel = new Label(container, SWT.NONE);
+        cfTypeLabel.setBounds(10, 10, 192, 15);
+        cfTypeLabel.setText("Crazyflie type: ");
 
-        lblFwImage = new Label(container, SWT.NONE);
-        lblFwImage.setBounds(10, 37, 305, 15);
-        lblFwImage.setText("Firmware image: ");
+        fwImageLabel = new Label(container, SWT.NONE);
+        fwImageLabel.setBounds(10, 37, 305, 15);
+        fwImageLabel.setText("Firmware image: ");
         
         Label lblCfTypeValue = new Label(container, SWT.NONE);
         lblCfTypeValue.setBounds(122, 10, 57, 15);
@@ -84,7 +86,9 @@ public class BootloaderWizardPage extends WizardPage {
                 if (!pageTwo.isCustomFirmware()) {
                     downloadFirmware();
                 }
-                flashFirmware();
+                if (downloadJob.getResult() == Status.OK_STATUS) {
+                    flashFirmware();
+                }
             }
 
         });
@@ -93,15 +97,18 @@ public class BootloaderWizardPage extends WizardPage {
     }
 
     protected void downloadFirmware() {
-        Job job = new Job("Downloading Crazyflie firmware...") {
+        downloadJob = new Job("Downloading Crazyflie firmware...") {
             @Override
             protected IStatus run(IProgressMonitor monitor) {
                 FirmwareDownloader fwDownloader = new FirmwareDownloader();
                 appendConsole("Downloading firmware " + selectedOfficialFirmware.getTagName() + "... ");
+                boolean successfulFirmwareDownload = false;
                 try {
-                    fwDownloader.downloadFirmware(selectedOfficialFirmware);
+                     successfulFirmwareDownload = fwDownloader.downloadFirmware(selectedOfficialFirmware);
                 } catch (IOException e) {
                     e.printStackTrace();
+                }
+                if (!successfulFirmwareDownload) {
                     appendConsole("Failed.\n");
                     return Status.CANCEL_STATUS;
                 }
@@ -109,10 +116,10 @@ public class BootloaderWizardPage extends WizardPage {
                 return Status.OK_STATUS;
             }
         };
-        job.setUser(true);
-        job.schedule();
+        downloadJob.setUser(true);
+        downloadJob.schedule();
         try {
-            job.join();
+            downloadJob.join();
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -122,7 +129,7 @@ public class BootloaderWizardPage extends WizardPage {
         FirmwareWizardPage pageTwo = (FirmwareWizardPage) getWizard().getPreviousPage(BootloaderWizardPage.this);
         boolean isCustomFw = pageTwo.isCustomFirmware();
         
-        Job job = new Job("Flashing Crazyflie firmware...") {
+        Job flashJob = new Job("Flashing Crazyflie firmware...") {
             @Override
             protected IStatus run(IProgressMonitor monitor) {
                 //fail quickly, when Crazyradio is not connected
@@ -175,8 +182,8 @@ public class BootloaderWizardPage extends WizardPage {
                 return Status.OK_STATUS;
             }
         };
-        job.setUser(true);
-        job.schedule();
+        flashJob.setUser(true);
+        flashJob.schedule();
     }
 
     /**
@@ -241,7 +248,7 @@ public class BootloaderWizardPage extends WizardPage {
             CfTypeWizardPage pageOne = (CfTypeWizardPage) getWizard().getStartingPage();
             pageTwo = (FirmwareWizardPage) getWizard().getPreviousPage(this);
             cfType = pageOne.getCfType();
-            lblCfType.setText("Crazyflie type: " + cfType);
+            cfTypeLabel.setText("Crazyflie type: " + cfType);
             String firmwareText = "";
             if (pageTwo.isCustomFirmware()) {
                 customFirmwareFile = pageTwo.getFirmwareFile();
@@ -253,7 +260,7 @@ public class BootloaderWizardPage extends WizardPage {
                 }
             }
             
-            lblFwImage.setText("Firmware image: " + firmwareText);
+            fwImageLabel.setText("Firmware image: " + firmwareText);
             
             textBox.setText("");
             //TODO: reset progressbar?

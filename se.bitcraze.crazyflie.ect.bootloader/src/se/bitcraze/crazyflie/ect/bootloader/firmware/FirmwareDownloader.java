@@ -14,6 +14,7 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.client.LaxRedirectStrategy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,16 +45,22 @@ public class FirmwareDownloader {
      * that contains all releases. Skip download when the file is already downloaded
      * and not too old. Load the local file and parse the JSON.
      * 
+     * @return
      */
-    public void checkForFirmwareUpdate() {
+    public boolean checkForFirmwareUpdate() {
         mLogger.info("Checking for updates...");
         if (!isFileAlreadyDownloaded(RELEASES_JSON) || isReleasesFileTooOld()) {
             mLogger.info("Downloading releases file...");
-            downloadFile(RELEASES_URL, RELEASES_JSON);
+            boolean successfulDownload = downloadFile(RELEASES_URL, RELEASES_JSON);
+            if (!successfulDownload) {
+                mLogger.info("Releases file could not be downloaded.");
+                return false;
+            }
             mLogger.info("Releases file downloaded.");
         }
         loadLocalReleasesFile();
         mLogger.info("Found {} firmware files.", mFirmwares.size());
+        return true;
     }
 
     private boolean isFileAlreadyDownloaded(String path) {
@@ -83,38 +90,55 @@ public class FirmwareDownloader {
      * Download the corresponding binary (e.g Zip file) of the specified firmware
      * 
      * @param selectedFw
+     * @return true if found locally or if it's downloaded successfully, false otherwise
      * @throws IOException
      */
-    public void downloadFirmware(Firmware selectedFw) throws IOException {
+    public boolean downloadFirmware(Firmware selectedFw) throws IOException {
         if (selectedFw != null) {
             if (isFileAlreadyDownloaded(selectedFw.getAssetName())) {
                 mLogger.info("Firmware {} found locally. Skipping download.", selectedFw.getTagName());
-                return;
+                return true;
             }
             mLogger.info("Downloading firmware {}...", selectedFw.getTagName());
-            downloadFile(selectedFw.getBrowserDownloadUrl(), selectedFw.getAssetName());
+            return downloadFile(selectedFw.getBrowserDownloadUrl(), selectedFw.getAssetName());
         } else {
             mLogger.info("Selected firmware does not have assets.");
-            return;
+            return false;
         }
     }
 
-    private void downloadFile(String url, String filename) {
-        mLogger.info("Downloading file {}...", filename);
-        CloseableHttpClient client = HttpClients.createDefault();
+    /**
+     * Download file from given URL and save under given filename
+     * 
+     * @param url
+     * @param filename
+     * @return true if download is successful, false otherwise
+     */
+    private boolean downloadFile(String url, String filename) {
+        mLogger.info("Downloading file {} from {}...", filename, url);
+         // adds HTTP REDIRECT support to GET and POST methods
+        CloseableHttpClient client = HttpClients.custom().setRedirectStrategy(new LaxRedirectStrategy()).build();
+        
         try (CloseableHttpResponse response = client.execute(new HttpGet(url))) {
             StatusLine statusLine = response.getStatusLine();
             int statusCode = statusLine.getStatusCode();
             mLogger.info("Status code: {}", statusCode);
+            //TODO: improve
+            if (statusCode == 404) {
+                return false;
+            }
             HttpEntity entity = response.getEntity();
             if (entity != null) {
                 writeFile(new File(RELEASES_DIR, filename), entity);
             }
         } catch (ClientProtocolException cpe) {
             mLogger.error(cpe.getMessage());
+            return false;
         } catch (IOException ioe) {
             mLogger.error(ioe.getMessage());
+            return false;
         }
+        return true;
     }
 
     private void writeFile(File file, HttpEntity entity) {
