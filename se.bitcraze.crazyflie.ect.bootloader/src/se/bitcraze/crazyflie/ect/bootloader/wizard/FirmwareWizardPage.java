@@ -54,7 +54,6 @@ public class FirmwareWizardPage extends WizardPage {
     private Firmware mSelectedFirmware;
     private File mFirmwareFile;
 
-    private Label officialFwReleaseInfoValueLabel;
     private Label officialFwReleaseDateValueLabel;
     private StyledText officialFwReleaseNotesText;
 
@@ -133,7 +132,6 @@ public class FirmwareWizardPage extends WizardPage {
             public void handleEvent(Event event) {
                 if (officialFwRadioBtn.getSelection() && officialFwCombo.getSelectionIndex() != -1) {
                     mSelectedFirmware = mFilteredFirmwares.get(officialFwCombo.getSelectionIndex());
-                    officialFwReleaseInfoValueLabel.setText(mSelectedFirmware.getInfo());
                     officialFwReleaseDateValueLabel.setText(mSelectedFirmware.getCreatedAt());
                     if (!mSelectedFirmware.getReleaseNotes().isEmpty()) {
                         officialFwReleaseNotesText.setText(mSelectedFirmware.getReleaseNotes());
@@ -146,15 +144,6 @@ public class FirmwareWizardPage extends WizardPage {
                 }
             }
         });
-
-        Label officialFwReleaseInfoLabel = new Label(pContainer, SWT.NONE);
-        GridData gd_officialFwReleaseInfoLabel = new GridData(SWT.LEFT, SWT.CENTER, false, false);
-        gd_officialFwReleaseInfoLabel.horizontalIndent = 10;
-        officialFwReleaseInfoLabel.setLayoutData(gd_officialFwReleaseInfoLabel);
-        officialFwReleaseInfoLabel.setText("Info:");
-        officialFwReleaseInfoValueLabel = new Label(pContainer, SWT.NONE);
-        officialFwReleaseInfoValueLabel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
-        officialFwReleaseInfoValueLabel.setText("");
 
         Label officialFwReleaseDateLabel = new Label(pContainer, SWT.NONE);
         GridData gd_officialFwReleaseDateLabel = new GridData(SWT.LEFT, SWT.CENTER, false, false);
@@ -289,7 +278,7 @@ public class FirmwareWizardPage extends WizardPage {
             Collections.sort(mFilteredFirmwares);
             Collections.reverse(mFilteredFirmwares);
             for (Firmware fw : mFilteredFirmwares) {
-                officialFwCombo.add(fw.getTagName());
+                officialFwCombo.add(fw.getTagName() + " " + fw.getInfo());
             }
             officialFwCombo.select(0);
             officialFwCombo.notifyListeners(SWT.Selection, new Event());
@@ -325,7 +314,6 @@ public class FirmwareWizardPage extends WizardPage {
 
     private void setEnablement(boolean officialEnabled) {
         officialFwCombo.setEnabled(officialEnabled);
-        officialFwReleaseInfoValueLabel.setEnabled(officialEnabled);
         officialFwReleaseDateValueLabel.setEnabled(officialEnabled);
         officialFwReleaseNotesText.setEnabled(officialEnabled);
         customFwFileText.setEnabled(!officialEnabled);
