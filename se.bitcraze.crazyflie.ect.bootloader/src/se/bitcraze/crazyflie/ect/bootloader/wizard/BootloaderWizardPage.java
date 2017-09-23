@@ -113,8 +113,10 @@ public class BootloaderWizardPage extends WizardPage {
                 console.setText("");
                 if (!pageTwo.isCustomFirmware()) {
                     downloadFirmware();
-                }
-                if (downloadJob.getResult() == Status.OK_STATUS) {
+                    if (downloadJob.getResult() == Status.OK_STATUS) {
+                        flashFirmware();
+                    }
+                } else {
                     flashFirmware();
                 }
             }
