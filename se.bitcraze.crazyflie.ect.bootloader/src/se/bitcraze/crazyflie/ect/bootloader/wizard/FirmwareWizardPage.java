@@ -5,6 +5,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StyledText;
@@ -231,23 +235,47 @@ public class FirmwareWizardPage extends WizardPage {
         });
     }
 
-    private void fillOfficialFwComboBox() {
+    private void checkForFirmwareUpdates() {
         FirmwareDownloader fwDownloader = new FirmwareDownloader();
         if (allFirmwares.isEmpty()) {
-            //TODO: async!!
-            fwDownloader.checkForFirmwareUpdate();
-            allFirmwares = fwDownloader.getFirmwares();
+            Job job = new Job("Checking available firmware updates...") {
+                @Override
+                protected IStatus run(IProgressMonitor monitor) {
+                    fwDownloader.checkForFirmwareUpdate();
+                    allFirmwares = fwDownloader.getFirmwares();
+                    if (allFirmwares.isEmpty()) {
+                        return Status.CANCEL_STATUS;
+                    }
+                    officialFwCombo.getDisplay().asyncExec(new Runnable() {
+                        @Override
+                        public void run() {
+                            fillOfficialFwComboBox();
+                            
+                        }
+                    } );
+                    return Status.OK_STATUS;
+                }
+            };
+            job.setUser(true);
+            job.schedule();
         }
-        //TODO: if empty or error => show error message
+    }
 
-        // Filter firmwares according to selected Crazyflie type (CF1 or CF2)
+    /**
+     * Filter firmwares according to selected Crazyflie type (CF1 or CF2)
+     */
+    private void filterFirmwares() {
         mFilteredFirmwares.clear();
-        officialFwCombo.removeAll();
         for (Firmware fw : allFirmwares) {
             if (cfType.equalsIgnoreCase(fw.getType()) || "CF1 & CF2".equalsIgnoreCase(fw.getType())) {
                 mFilteredFirmwares.add(fw);
             }
         }
+    }
+
+    private void fillOfficialFwComboBox() {
+        filterFirmwares();
+        officialFwCombo.removeAll();
         if (!mFilteredFirmwares.isEmpty()) {
             Collections.sort(mFilteredFirmwares);
             Collections.reverse(mFilteredFirmwares);
@@ -303,7 +331,7 @@ public class FirmwareWizardPage extends WizardPage {
             cfType = pageOne.getCfType();
             lblCfType.setText("Crazyflie type: " + cfType);
 
-            fillOfficialFwComboBox();
+            checkForFirmwareUpdates();
         }
     }
 }
