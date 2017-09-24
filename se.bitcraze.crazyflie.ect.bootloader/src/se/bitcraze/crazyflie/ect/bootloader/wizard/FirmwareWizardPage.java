@@ -57,6 +57,7 @@ public class FirmwareWizardPage extends WizardPage {
     private Firmware mSelectedFirmware;
     private File mFirmwareFile;
 
+    private boolean firstTime = true;
 
     /**
      * Create the wizard.
@@ -339,11 +340,14 @@ public class FirmwareWizardPage extends WizardPage {
             cfType = pageOne.getCfType();
             cfTypeValueLabel.setText(cfType);
 
-            //default selection
-            officialFwRadioBtn.setSelection(true);
-            officialFwRadioBtn.notifyListeners(SWT.Selection, new Event());
-            customFwRadioBtn.setSelection(false);
-            
+            if (firstTime) {
+                //default selection
+                officialFwRadioBtn.setSelection(true);
+                officialFwRadioBtn.notifyListeners(SWT.Selection, new Event());
+                customFwRadioBtn.setSelection(false);
+                firstTime = false;
+            }
+
             checkForFirmwareUpdates();
         }
     }
