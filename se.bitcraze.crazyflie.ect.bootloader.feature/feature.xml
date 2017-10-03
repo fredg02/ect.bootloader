@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <feature
       id="se.bitcraze.crazyflie.ect.bootloader.feature"
-      label="ECT Bootloader Feature"
+      label="ECT Bootloader feature"
       version="0.0.1.qualifier">
 
    <description url="http://www.example.com/description">
-      [Enter Feature Description here.]
+      ECT Bootloader Wizard feature
    </description>
 
    <copyright url="http://www.example.com/copyright">
@@ -29,4 +29,5 @@
          install-size="0"
          version="0.0.0"
          unpack="false"/>
+
 </feature>
