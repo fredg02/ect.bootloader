@@ -48,7 +48,6 @@ public class BootloaderWizard extends Wizard {
                 }
             }
         };
-        MessageDialog.openInformation(getShell(), "Bootloader", "CF type? " + cfTypePage.getCfType() + "\nIs Custom FW? " + fwPage.isCustomFirmware() + "\n");
         try {
             getContainer().run(true, false, op);
         } catch (InterruptedException e) {
