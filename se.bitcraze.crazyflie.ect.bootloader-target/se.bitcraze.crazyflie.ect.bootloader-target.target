@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<?pde version="3.8"?><target name="Running Platform" sequenceNumber="19">
+<?pde version="3.8"?><target name="Running Platform" sequenceNumber="24">
 <locations>
 <location path="${eclipse_home}" type="Profile"/>
 <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
-<unit id="se.bitcraze.crazyflie.lib.feature.feature.group" version="0.0.1.201710031735"/>
-<unit id="se.bitcraze.crazyflie.lib.feature.source.feature.group" version="0.0.1.201710031735"/>
+<unit id="se.bitcraze.crazyflie.lib.feature.feature.group" version="0.0.1.201710040118"/>
+<unit id="se.bitcraze.crazyflie.lib.feature.source.feature.group" version="0.0.1.201710040118"/>
 <repository location="http://fredg02.github.io/se.bitcraze.crazyflie.lib/p2/"/>
 </location>
 </locations>

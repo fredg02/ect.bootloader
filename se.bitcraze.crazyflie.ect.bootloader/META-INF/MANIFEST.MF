@@ -16,4 +16,4 @@ Require-Bundle: se.bitcraze.crazyflie.lib;bundle-version="0.0.1",
  org.eclipse.equinox.registry,
  org.eclipse.osgi,
  org.eclipse.core.jobs,
- slf4j.api;bundle-version="1.7.10"
+ org.slf4j.api;bundle-version="1.7.2"
