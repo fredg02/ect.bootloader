@@ -6,9 +6,9 @@
    <feature id="se.bitcraze.crazyflie.ect.bootloader.feature.source" version="0.0.0">
       <category name="ect.bootloader"/>
    </feature>
-   <category-def name="ect.bootloader" label="ECT Bootloader">
+   <category-def name="ect.bootloader" label="Eclipse Crazyflie Tools - Bootloader">
       <description>
-         Eclipse Crazyflie Tools - Bootloader Wizard
+         Eclipse Crazyflie Tools - Bootloader
       </description>
    </category-def>
 </site>
