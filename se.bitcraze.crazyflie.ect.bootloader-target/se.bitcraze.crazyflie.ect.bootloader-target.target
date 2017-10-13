@@ -1,24 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <?pde version="3.8"?><target name="ECT Bootloader Target Platform" sequenceNumber="37">
 <locations>
-<location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
-<unit id="org.usb4java.libusb4java.linux-arm" version="1.2.0"/>
-<unit id="org.usb4java.libusb4java.linux-x86_64" version="1.2.0"/>
-<unit id="org.usb4java.libusb4java.osx-x86_64" version="1.2.0"/>
-<unit id="usb4java-javax_javax.usb.api" version="1.2.0"/>
-<unit id="org.usb4java.libusb4java.windows-x86" version="1.2.0"/>
-<unit id="org.usb4java.bundle.source" version="1.2.0"/>
-<unit id="usb4java-javax_javax.usb.api.source" version="1.2.0"/>
-<unit id="org.usb4java.libusb4java.linux-x86" version="1.2.0"/>
-<unit id="org.usb4java.libusb4java.osx-x86" version="1.2.0"/>
-<unit id="org.usb4java.bundle" version="1.2.0"/>
-<unit id="org.usb4java.libusb4java.windows-x86_64" version="1.2.0"/>
-<repository location="http://fredg02.github.io/usb4java-for-eclipse-p2"/>
-</location>
 <location path="${eclipse_home}" type="Profile"/>
 <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
-<unit id="se.bitcraze.crazyflie.lib.feature.source.feature.group" version="0.0.1.201710130106"/>
-<unit id="se.bitcraze.crazyflie.lib.feature.feature.group" version="0.0.1.201710130106"/>
+<unit id="se.bitcraze.crazyflie.lib.feature.source.feature.group" version="0.0.1.201710130224"/>
+<unit id="se.bitcraze.crazyflie.lib.feature.feature.group" version="0.0.1.201710130224"/>
 <repository location="http://fredg02.github.io/se.bitcraze.crazyflie.lib/p2/"/>
 </location>
 </locations>
