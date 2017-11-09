@@ -1,6 +1,9 @@
 package se.bitcraze.crazyflie.ect.bootloader.wizard;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -305,6 +308,81 @@ public class FirmwareWizardPage extends WizardPage {
             // set error message (wizard page)
             setPageComplete(false);
         }
+    }
+
+    public static void identifyCustomFirmware(File customFw) {
+        byte[] bytes = readBytes(customFw);
+        if (bytes[3] == 0x20) {
+            if (bytes[2] > 0x00) {
+                System.out.println("STM32");
+            } else if (bytes[2] == 0x00) {
+                System.out.println("nRF51");
+            }
+        }
+    }
+
+    private static byte[] readBytes(File customFw) {
+        FileInputStream fis = null;
+        byte fileContent[] = new byte[20];
+        try {
+            fis = new FileInputStream(customFw);
+            fis.read(fileContent);
+            System.out.println("File bytes: " + getByteString(fileContent));
+            System.out.println("File hexes: " + bytesToHex(fileContent));
+            System.out.println("File hexes: " + bytesToHex2(fileContent));
+            return fileContent;
+        } catch (FileNotFoundException e) {
+            System.out.println("File not found" + e);
+            return fileContent;
+        } catch (IOException ioe) {
+            System.out.println("Exception while reading file " + ioe);
+            return fileContent;
+        } finally {
+            try {
+                if (fis != null) {
+                    fis.close();
+                }
+            } catch (IOException ioe) {
+                System.out.println("Error while closing stream: " + ioe);
+            }
+        }
+    }
+
+    /**
+     * Returns byte array as comma separated string
+     * (for debugging purposes)
+     *
+     * @param data
+     * @return
+     */
+    public static String getByteString(byte[] data) {
+        StringBuffer sb = new StringBuffer();
+        for (byte b : data) {
+            sb.append(b);
+            sb.append(",");
+        }
+        String byteString = sb.toString();
+        return byteString;
+    }
+    
+    private final static char[] hexArray = "0123456789ABCDEF".toCharArray();
+    public static String bytesToHex(byte[] bytes) {
+        char[] hexChars = new char[bytes.length * 2];
+        for ( int j = 0; j < bytes.length; j++ ) {
+            int v = bytes[j] & 0xFF;
+            hexChars[j * 2] = hexArray[v >>> 4];
+            hexChars[j * 2 + 1] = hexArray[v & 0x0F];
+        }
+        return new String(hexChars);
+    }
+
+    public static String bytesToHex2(byte[] bytes) {
+        StringBuffer sb = new StringBuffer();
+        for (byte b : bytes) {
+            sb.append(bytesToHex(new byte[]{b}));
+            sb.append(",");
+        }
+        return sb.toString();
     }
 
     public Firmware getFirmware() {
