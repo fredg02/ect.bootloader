@@ -5,7 +5,7 @@
    <extension
          point="org.eclipse.ui.commands">
       <category
-            name="Eclipse Crazyflie Tools"
+            name="Crazyflie Tools"
             id="se.bitcraze.crazyflie.ect.bootloader.commands.category">
       </category>
       <command
@@ -35,13 +35,14 @@
       <menuContribution
             locationURI="menu:org.eclipse.ui.main.menu?after=additions">
          <menu
-               label="Tools"
+               label="Crazyflie Tools"
                mnemonic="T"
                id="se.bitcraze.crazyflie.ect.bootloader.menus.sampleMenu">
             <command
                   commandId="se.bitcraze.crazyflie.ect.bootloader.commands.startBootloader"
-                  mnemonic="S"
-                  id="se.bitcraze.crazyflie.ect.bootloader.menus.startBootloader">
+                  icon="icons/bc_logo.png"
+                  id="se.bitcraze.crazyflie.ect.bootloader.menus.startBootloader"
+                  mnemonic="S">
             </command>
          </menu>
       </menuContribution>
