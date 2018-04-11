@@ -17,3 +17,4 @@ Require-Bundle: org.junit,
  com.fasterxml.jackson.core.jackson-core;bundle-version="2.9.0",
  com.fasterxml.jackson.core.jackson-databind;bundle-version="2.9.0",
  se.bitcraze.crazyflie.lib;bundle-version="0.0.1"
+Automatic-Module-Name: se.bitcraze.crazyflie.ect.bootloader

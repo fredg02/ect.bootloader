@@ -22,8 +22,8 @@ import org.eclipse.swt.widgets.Label;
 
 import se.bitcraze.crazyflie.ect.bootloader.firmware.Firmware;
 import se.bitcraze.crazyflie.ect.bootloader.firmware.FirmwareDownloader;
+import se.bitcraze.crazyflie.lib.bootloader.BootVersion;
 import se.bitcraze.crazyflie.lib.bootloader.Bootloader;
-import se.bitcraze.crazyflie.lib.bootloader.Utilities.BootVersion;
 import se.bitcraze.crazyflie.lib.crazyradio.Crazyradio;
 import se.bitcraze.crazyflie.lib.crazyradio.RadioDriver;
 import se.bitcraze.crazyflie.lib.usb.UsbLinkJava;
