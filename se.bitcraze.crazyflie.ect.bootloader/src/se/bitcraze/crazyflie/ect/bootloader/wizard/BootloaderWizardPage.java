@@ -41,6 +41,8 @@ public class BootloaderWizardPage extends WizardPage {
 
     private Label cfTypeValueLabel;
     private Label fwImageValueLabel;
+    private Label fwTypeValueLabel;
+
     private StyledText console;
 //    private ProgressBar progressBar;
     private Button flashFirmwareButton;
@@ -90,6 +92,19 @@ public class BootloaderWizardPage extends WizardPage {
         gd_fwImageValueLabel.minimumWidth = 400;
         fwImageValueLabel.setLayoutData(gd_fwImageValueLabel);
         fwImageValueLabel.setText("");
+
+        Label fwTypeLabel = new Label(container, SWT.NONE);
+        GridData gd_fwTypeLabel = new GridData(SWT.LEFT, SWT.CENTER, false, false);
+        gd_fwTypeLabel.widthHint = 110;
+        fwTypeLabel.setLayoutData(gd_fwTypeLabel);
+        fwTypeLabel.setText("Firmware type:");
+
+        fwTypeValueLabel = new Label(container, SWT.NONE);
+        GridData gd_fwTypeValueLabel = new GridData(SWT.LEFT, SWT.CENTER, true, false);
+        gd_fwTypeValueLabel.widthHint = 110;
+        gd_fwTypeValueLabel.minimumWidth = 200;
+        fwTypeValueLabel.setLayoutData(gd_fwTypeValueLabel);
+        fwTypeValueLabel.setText("");
 
         console = new StyledText(container, SWT.MULTI | SWT.BORDER | SWT.WRAP | SWT.V_SCROLL);
         GridData gd_console = new GridData(SWT.FILL, SWT.FILL, true, false, 2, 1);
@@ -308,19 +323,29 @@ public class BootloaderWizardPage extends WizardPage {
         if (visible) {
             CfTypeWizardPage pageOne = (CfTypeWizardPage) getWizard().getStartingPage();
             pageTwo = (FirmwareWizardPage) getWizard().getPreviousPage(this);
+            // cf type
             String cfType = pageOne.getCfType();
             cfTypeValueLabel.setText(cfType);
-            String firmwareText = "";
+            // fw path
+            String fwPath = "";
             if (pageTwo.isCustomFirmware()) {
                 customFirmwareFile = pageTwo.getFirmwareFile();
-                firmwareText = customFirmwareFile.getPath();
+                fwPath = customFirmwareFile.getPath();
             } else {
                 selectedOfficialFirmware = pageTwo.getFirmware();
                 if (selectedOfficialFirmware != null) {
-                    firmwareText = selectedOfficialFirmware.getAssetName();
+                    fwPath = selectedOfficialFirmware.getAssetName();
                 }
             }
-            fwImageValueLabel.setText(firmwareText);
+            fwImageValueLabel.setText(fwPath);
+            // fw type
+            String fwType = "";
+            if (pageTwo.isCustomFirmware()) {
+                fwType = pageTwo.isNrfFirmware() ? FirmwareWizardPage.FW_NRF51 : FirmwareWizardPage.FW_STM32;
+            } else {
+                fwType = FirmwareWizardPage.FW_STM32 + " && " + FirmwareWizardPage.FW_NRF51;
+            }
+            fwTypeValueLabel.setText(fwType);
             console.setText("");
             flashFirmwareButton.setEnabled(true);
             //TODO: reset progressbar?
