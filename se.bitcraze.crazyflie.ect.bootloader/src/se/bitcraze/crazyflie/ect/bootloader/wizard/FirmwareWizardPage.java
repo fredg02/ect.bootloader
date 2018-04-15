@@ -1,9 +1,6 @@
 package se.bitcraze.crazyflie.ect.bootloader.wizard;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -30,6 +27,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
 
+import se.bitcraze.crazyflie.ect.bootloader.Utils;
 import se.bitcraze.crazyflie.ect.bootloader.firmware.Firmware;
 import se.bitcraze.crazyflie.ect.bootloader.firmware.FirmwareDownloader;
 
@@ -40,6 +38,10 @@ import se.bitcraze.crazyflie.ect.bootloader.firmware.FirmwareDownloader;
  * 
  */
 public class FirmwareWizardPage extends WizardPage {
+
+    public static final String FW_STM32 = "STM32";
+    public static final String FW_NRF51 = "nRF51";
+    public static final String FW_UKNWN = "UKNWN";
 
     private String cfType;
     private Label cfTypeValueLabel;
@@ -52,7 +54,9 @@ public class FirmwareWizardPage extends WizardPage {
     private Button customFwRadioBtn;
     private Text customFwFileText;
     private Button customFwBrowseButton;
-    private Button customNrfFwCheckButton;
+
+    private Button customFwTypeAutomaticCheckbox;
+    private Combo customFwTypeDropdown;
 
     private List<Firmware> allFirmwares = new ArrayList<Firmware>();
     private List<Firmware> mFilteredFirmwares = new ArrayList<Firmware>();
@@ -61,6 +65,7 @@ public class FirmwareWizardPage extends WizardPage {
     private File mFirmwareFile;
 
     private boolean firstTime = true;
+    private boolean isNrfFirmware = false;
 
     /**
      * Create the wizard.
@@ -95,15 +100,6 @@ public class FirmwareWizardPage extends WizardPage {
 
         officialFwControls(container);
         customFwControls(container);
-
-        Label customNrfFwLabel = new Label(container, SWT.NONE);
-        GridData gd_customNrfFwLabel = new GridData(SWT.LEFT, SWT.CENTER, false, false);
-        gd_customNrfFwLabel.horizontalIndent = 10;
-        customNrfFwLabel.setLayoutData(gd_customNrfFwLabel);
-        customNrfFwLabel.setText("nRF51 firmware:");
-
-        customNrfFwCheckButton = new Button(container, SWT.CHECK);
-        customNrfFwCheckButton.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false, 2, 1));
 
         setPageComplete(false);
     }
@@ -241,6 +237,39 @@ public class FirmwareWizardPage extends WizardPage {
                 checkCustomFirmware();
             }
         });
+
+        Label customFwTypeAutomaticLabel = new Label(pContainer, SWT.NONE);
+        GridData gd_customFwTypeAutomaticLabel = new GridData(SWT.LEFT, SWT.CENTER, false, false);
+        gd_customFwTypeAutomaticLabel.horizontalIndent = 10;
+        customFwTypeAutomaticLabel.setLayoutData(gd_customFwTypeAutomaticLabel);
+        customFwTypeAutomaticLabel.setText("Automatic:");
+
+        customFwTypeAutomaticCheckbox = new Button(pContainer, SWT.CHECK);
+        customFwTypeAutomaticCheckbox.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false, 2, 1));
+        customFwTypeAutomaticCheckbox.setSelection(true);
+
+        customFwTypeAutomaticCheckbox.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                customFwTypeDropdown.setEnabled(!customFwTypeAutomaticCheckbox.getSelection());
+                checkCustomFirmware();
+            }
+        });
+
+        Label customFwTypeLabel = new Label(pContainer, SWT.NONE);
+        GridData gd_customFwTypeLabel = new GridData(SWT.LEFT, SWT.CENTER, false, false);
+        gd_customFwTypeLabel.horizontalIndent = 10;
+        customFwTypeLabel.setLayoutData(gd_customFwTypeLabel);
+        customFwTypeLabel.setText("Firmware type:");
+
+        customFwTypeDropdown = new Combo(pContainer, SWT.READ_ONLY);
+        GridData gd_customFwTypeDropdown = new GridData(SWT.LEFT, SWT.CENTER, false, false, 2, 1);
+        gd_customFwTypeDropdown.widthHint = 100;
+        customFwTypeDropdown.setLayoutData(gd_customFwTypeDropdown);
+        customFwTypeDropdown.add(FW_STM32);
+        customFwTypeDropdown.add(FW_NRF51);
+        customFwTypeDropdown.select(0);
+        customFwTypeDropdown.setEnabled(false);
     }
 
     private void checkForFirmwareUpdates() {
@@ -302,6 +331,7 @@ public class FirmwareWizardPage extends WizardPage {
     private void checkCustomFirmware() {
         File customFwFile = new File(customFwFileText.getText());
         if (customFwFile.exists() && customFwFile.isFile()) {
+            identifyCustomFwType(customFwFile);
             mFirmwareFile = customFwFile;
             setPageComplete(true);
         } else {
@@ -310,79 +340,30 @@ public class FirmwareWizardPage extends WizardPage {
         }
     }
 
-    public static void identifyCustomFirmware(File customFw) {
-        byte[] bytes = readBytes(customFw);
+    private void identifyCustomFwType(File customFwFile) {
+        String customFwType = getCustomFwType(customFwFile);
+        if (FW_STM32.equalsIgnoreCase(customFwType)) {
+            isNrfFirmware = false;
+            customFwTypeDropdown.select(0);
+        } else if (FW_NRF51.equalsIgnoreCase(customFwType)) {
+            isNrfFirmware = true;
+            customFwTypeDropdown.select(1);
+        } else {
+            // Message dialog ("Could not determine the type of firmware...")
+            isNrfFirmware = false;
+        }
+    }
+
+    public static String getCustomFwType(File customFw) {
+        byte[] bytes = Utils.readBytes(customFw);
         if (bytes[3] == 0x20) {
             if (bytes[2] > 0x00) {
-                System.out.println("STM32");
+                return FW_STM32;
             } else if (bytes[2] == 0x00) {
-                System.out.println("nRF51");
+                return FW_NRF51;
             }
         }
-    }
-
-    private static byte[] readBytes(File customFw) {
-        FileInputStream fis = null;
-        byte fileContent[] = new byte[20];
-        try {
-            fis = new FileInputStream(customFw);
-            fis.read(fileContent);
-            System.out.println("File bytes: " + getByteString(fileContent));
-            System.out.println("File hexes: " + bytesToHex(fileContent));
-            System.out.println("File hexes: " + bytesToHex2(fileContent));
-            return fileContent;
-        } catch (FileNotFoundException e) {
-            System.out.println("File not found" + e);
-            return fileContent;
-        } catch (IOException ioe) {
-            System.out.println("Exception while reading file " + ioe);
-            return fileContent;
-        } finally {
-            try {
-                if (fis != null) {
-                    fis.close();
-                }
-            } catch (IOException ioe) {
-                System.out.println("Error while closing stream: " + ioe);
-            }
-        }
-    }
-
-    /**
-     * Returns byte array as comma separated string
-     * (for debugging purposes)
-     *
-     * @param data
-     * @return
-     */
-    public static String getByteString(byte[] data) {
-        StringBuffer sb = new StringBuffer();
-        for (byte b : data) {
-            sb.append(b);
-            sb.append(",");
-        }
-        String byteString = sb.toString();
-        return byteString;
-    }
-    
-    private final static char[] hexArray = "0123456789ABCDEF".toCharArray();
-    public static String bytesToHex(byte[] bytes) {
-        char[] hexChars = new char[bytes.length * 2];
-        for ( int j = 0; j < bytes.length; j++ ) {
-            int v = bytes[j] & 0xFF;
-            hexChars[j * 2] = hexArray[v >>> 4];
-            hexChars[j * 2 + 1] = hexArray[v & 0x0F];
-        }
-        return new String(hexChars);
-    }
-
-    public static String bytesToHex2(byte[] bytes) {
-        StringBuffer sb = new StringBuffer();
-        for (byte b : bytes) {
-            sb.append(bytesToHex(new byte[]{b}));
-            sb.append(",");
-        }
-        return sb.toString();
+        return FW_UKNWN;
     }
 
     public Firmware getFirmware() {
@@ -394,7 +375,7 @@ public class FirmwareWizardPage extends WizardPage {
     }
 
     public boolean isNrfFirmware() {
-        return customNrfFwCheckButton.getSelection();
+        return isNrfFirmware;
     }
 
     public File getFirmwareFile() {
@@ -407,7 +388,8 @@ public class FirmwareWizardPage extends WizardPage {
         officialFwReleaseNotesText.setEnabled(officialEnabled);
         customFwFileText.setEnabled(!officialEnabled);
         customFwBrowseButton.setEnabled(!officialEnabled);
-        customNrfFwCheckButton.setEnabled(!officialEnabled);
+        customFwTypeAutomaticCheckbox.setEnabled(!officialEnabled);
+        customFwTypeDropdown.setEnabled(!customFwTypeAutomaticCheckbox.getSelection() && !officialEnabled);
     }
 
     @Override

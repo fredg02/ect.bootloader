@@ -9,10 +9,10 @@ public class FirmwareWizardPageTest {
     @Test
     public void firmwareIdentificationTest() {
         File customFw = new File("crazyflie-firmware", "cf2-2017.06.bin");
-        FirmwareWizardPage.identifyCustomFirmware(customFw);
+        FirmwareWizardPage.getCustomFwType(customFw);
 
         File customFw2 = new File("crazyflie-firmware", "cf2_nrf-2017.05.bin");
-        FirmwareWizardPage.identifyCustomFirmware(customFw2);
+        FirmwareWizardPage.getCustomFwType(customFw2);
     }
 
 }
