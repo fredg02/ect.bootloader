@@ -35,7 +35,7 @@ import se.bitcraze.crazyflie.lib.usb.UsbLinkJava;
  *
  */
 public class BootloaderWizardPage extends WizardPage {
-    private FirmwareWizardPage pageTwo;
+    private FirmwareWizardPage pageOne;
     private Firmware selectedOfficialFirmware;
     private File customFirmwareFile;
 
@@ -129,7 +129,7 @@ public class BootloaderWizardPage extends WizardPage {
             @Override
             public void widgetSelected(SelectionEvent e) {
                 console.setText("");
-                if (!pageTwo.isCustomFirmware()) {
+                if (!pageOne.isCustomFirmware()) {
                     downloadFirmware();
                     if (downloadJob.getResult() == Status.OK_STATUS) {
                         flashFirmware();
@@ -276,8 +276,8 @@ public class BootloaderWizardPage extends WizardPage {
         appendConsole(cfversion);
 
         // check if firmware and CF are compatible
-        if ((CfTypeWizardPage.CF2.equalsIgnoreCase(selectedOfficialFirmware.getType()) && !cfType2) ||
-            (CfTypeWizardPage.CF1.equalsIgnoreCase(selectedOfficialFirmware.getType()) && cfType2)) {
+        if ((FirmwareWizardPage.CF2.equalsIgnoreCase(selectedOfficialFirmware.getType()) && !cfType2) ||
+            (FirmwareWizardPage.CF1.equalsIgnoreCase(selectedOfficialFirmware.getType()) && cfType2)) {
             appendConsole("Incompatible firmware version.\n");
             return false;
         }
@@ -321,18 +321,17 @@ public class BootloaderWizardPage extends WizardPage {
     public void setVisible(boolean visible) {
         super.setVisible(visible);
         if (visible) {
-            CfTypeWizardPage pageOne = (CfTypeWizardPage) getWizard().getStartingPage();
-            pageTwo = (FirmwareWizardPage) getWizard().getPreviousPage(this);
+            pageOne = (FirmwareWizardPage) getWizard().getPreviousPage(this);
             // cf type
             String cfType = pageOne.getCfType();
             cfTypeValueLabel.setText(cfType);
             // fw path
             String fwPath = "";
-            if (pageTwo.isCustomFirmware()) {
-                customFirmwareFile = pageTwo.getFirmwareFile();
+            if (pageOne.isCustomFirmware()) {
+                customFirmwareFile = pageOne.getFirmwareFile();
                 fwPath = customFirmwareFile.getPath();
             } else {
-                selectedOfficialFirmware = pageTwo.getFirmware();
+                selectedOfficialFirmware = pageOne.getFirmware();
                 if (selectedOfficialFirmware != null) {
                     fwPath = selectedOfficialFirmware.getAssetName();
                 }
@@ -340,8 +339,8 @@ public class BootloaderWizardPage extends WizardPage {
             fwImageValueLabel.setText(fwPath);
             // fw type
             String fwType = "";
-            if (pageTwo.isCustomFirmware()) {
-                fwType = pageTwo.isNrfFirmware() ? FirmwareWizardPage.FW_NRF51 : FirmwareWizardPage.FW_STM32;
+            if (pageOne.isCustomFirmware()) {
+                fwType = pageOne.isNrfFirmware() ? FirmwareWizardPage.FW_NRF51 : FirmwareWizardPage.FW_STM32;
             } else {
                 fwType = FirmwareWizardPage.FW_STM32 + " && " + FirmwareWizardPage.FW_NRF51;
             }

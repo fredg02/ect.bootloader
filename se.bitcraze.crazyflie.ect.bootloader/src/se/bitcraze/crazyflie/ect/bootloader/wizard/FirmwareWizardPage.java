@@ -39,12 +39,15 @@ import se.bitcraze.crazyflie.ect.bootloader.firmware.FirmwareDownloader;
  */
 public class FirmwareWizardPage extends WizardPage {
 
+    public static final String CF1 = "CF1";
+    public static final String CF2 = "CF2";
+
     public static final String FW_STM32 = "STM32";
     public static final String FW_NRF51 = "nRF51";
     public static final String FW_UKNWN = "UKNWN";
 
-    private String cfType;
-    private Label cfTypeValueLabel;
+    private int lastCfType = 1; //default cf type is CF2 => selection index 1 in combo
+    private Combo cfTypeCombo;
 
     private Button officialFwRadioBtn;
     private Combo officialFwCombo;
@@ -92,11 +95,23 @@ public class FirmwareWizardPage extends WizardPage {
         cfTypeLabel.setLayoutData(gd_cfTypeLabel);
         cfTypeLabel.setText("Crazyflie type:");
 
-        cfTypeValueLabel = new Label(container, SWT.NONE);
-        GridData gd_cfTypeValueLabel = new GridData(SWT.LEFT, SWT.CENTER, true, false, 3, 1);
-        gd_cfTypeValueLabel.minimumWidth = 200;
-        cfTypeValueLabel.setLayoutData(gd_cfTypeValueLabel);
-        cfTypeValueLabel.setText("");
+        cfTypeCombo = new Combo(container, SWT.READ_ONLY);
+        GridData gd_cfTypeCombo = new GridData(SWT.LEFT, SWT.CENTER, true, false, 3, 1);
+        gd_cfTypeCombo.minimumWidth = 200;
+        cfTypeCombo.setLayoutData(gd_cfTypeCombo);
+        cfTypeCombo.add("Crazyflie 1.0 (CF1)");
+        cfTypeCombo.add("Crazyflie 2.0 (CF2)");
+        cfTypeCombo.select(1);
+
+        cfTypeCombo.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                if (cfTypeCombo.getSelectionIndex() != lastCfType) {
+                    fillOfficialFwComboBox();
+                    lastCfType = cfTypeCombo.getSelectionIndex();
+                }
+            }
+        });
 
         officialFwControls(container);
         customFwControls(container);
@@ -309,7 +324,7 @@ public class FirmwareWizardPage extends WizardPage {
     private void filterFirmwares() {
         mFilteredFirmwares.clear();
         for (Firmware fw : allFirmwares) {
-            if (cfType.equalsIgnoreCase(fw.getType()) || "CF1 & CF2".equalsIgnoreCase(fw.getType())) {
+            if (this.getCfType().equalsIgnoreCase(fw.getType()) || "CF1 & CF2".equalsIgnoreCase(fw.getType())) {
                 mFilteredFirmwares.add(fw);
             }
         }
@@ -371,6 +386,10 @@ public class FirmwareWizardPage extends WizardPage {
         return FW_UKNWN;
     }
 
+    public String getCfType() {
+        return cfTypeCombo.getSelectionIndex() == 1 ? CF2 : CF1;
+    }
+
     public Firmware getFirmware() {
         return mSelectedFirmware;
     }
@@ -401,10 +420,6 @@ public class FirmwareWizardPage extends WizardPage {
     public void setVisible(boolean visible) {
         super.setVisible(visible);
         if (visible) {
-            CfTypeWizardPage pageOne = (CfTypeWizardPage) getWizard().getPreviousPage(this);
-            cfType = pageOne.getCfType();
-            cfTypeValueLabel.setText(cfType);
-
             if (firstTime) {
                 //default selection
                 officialFwRadioBtn.setSelection(true);

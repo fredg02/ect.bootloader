@@ -15,7 +15,6 @@ import org.osgi.framework.FrameworkUtil;
 
 public class BootloaderWizard extends Wizard {
 
-    private CfTypeWizardPage cfTypePage;
     private FirmwareWizardPage fwPage;
     private BootloaderWizardPage bootloaderPage;
 
@@ -29,10 +28,8 @@ public class BootloaderWizard extends Wizard {
     }
 
     public void addPages() {
-        cfTypePage = new CfTypeWizardPage();
         fwPage = new FirmwareWizardPage();
         bootloaderPage = new BootloaderWizardPage();
-        addPage(cfTypePage);
         addPage(fwPage);
         addPage(bootloaderPage);
     }
@@ -69,7 +66,7 @@ public class BootloaderWizard extends Wizard {
     }
 
     public boolean canFinish() {
-        if(getContainer().getCurrentPage() == cfTypePage || getContainer().getCurrentPage() == fwPage) {
+        if(getContainer().getCurrentPage() == fwPage) {
             return false;
         }
         return true;
