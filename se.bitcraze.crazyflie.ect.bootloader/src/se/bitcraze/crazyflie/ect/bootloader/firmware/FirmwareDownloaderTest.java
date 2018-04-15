@@ -1,11 +1,14 @@
 package se.bitcraze.crazyflie.ect.bootloader.firmware;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.junit.Test;
 
@@ -68,6 +71,27 @@ public class FirmwareDownloaderTest {
         FirmwareDownloader fwDownloader = new FirmwareDownloader();
         boolean downloadFirmware = fwDownloader.downloadFirmware(testFw);
         assertFalse(downloadFirmware);
+    }
+
+    @Test
+    public void testFirmwareType() {
+     // download firmwares
+        FirmwareDownloader fwDownloader = new FirmwareDownloader();
+        fwDownloader.checkForFirmwareUpdate();
+        List<Firmware> firmwares = fwDownloader.getFirmwares();
+        Map<String, Firmware> firmwareMap = new HashMap<String, Firmware>();
+        for (Firmware fw : firmwares) {
+            firmwareMap.put(fw.getTagName(), fw);
+            System.out.println(fw.getTagName() + " Type: " + fw.getType());
+        }
+        Firmware fw201501 = firmwareMap.get("2015.01");
+        assertEquals("CF1", fw201501.getType());
+        Firmware fw2014121 = firmwareMap.get("2014.12.1");
+        assertEquals("CF2", fw2014121.getType());
+        Firmware fw201602 = firmwareMap.get("2016.02");
+        assertEquals("CF1 & CF2", fw201602.getType());
+        Firmware fw201801 = firmwareMap.get("2018.01");
+        assertEquals("CF2", fw201801.getType());
     }
 
 }

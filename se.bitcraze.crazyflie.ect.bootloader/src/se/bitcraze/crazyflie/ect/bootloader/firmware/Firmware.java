@@ -2,7 +2,9 @@ package se.bitcraze.crazyflie.ect.bootloader.firmware;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -123,13 +125,25 @@ public class Firmware implements Comparable<Firmware> {
      */
     public String getType() {
         // TODO: make this more reliable
+
+        // additional whitelist based on the tag name, since CF1 support has been dropped with firmware 2018.01
+        List<String> cf1cf2Whitelist = new ArrayList<String>();
+        cf1cf2Whitelist.add("2016.02");
+        cf1cf2Whitelist.add("2016.09");
+        cf1cf2Whitelist.add("2016.11");
+        cf1cf2Whitelist.add("2017.04");
+        cf1cf2Whitelist.add("2017.05");
+        cf1cf2Whitelist.add("2017.06");
+
         String lcAssetName = mAssetName.toLowerCase(Locale.US);
         if (lcAssetName.startsWith("cf1") || lcAssetName.startsWith("crazyflie1")) {
             return "CF1";
         } else if (lcAssetName.startsWith("cf2") || lcAssetName.startsWith("crazyflie2") || lcAssetName.startsWith("cflie2")) {
             return "CF2";
-        } else if (lcAssetName.startsWith("crazyflie-")) {
+        } else if (lcAssetName.startsWith("crazyflie-") && cf1cf2Whitelist.contains(mTagName)) {
             return "CF1 & CF2";
+        } else if (lcAssetName.startsWith("crazyflie-") && !cf1cf2Whitelist.contains(mTagName)) {
+            return "CF2";
         } else {
             return "Unknown";
         }
