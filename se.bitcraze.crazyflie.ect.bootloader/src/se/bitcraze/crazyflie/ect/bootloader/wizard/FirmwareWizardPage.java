@@ -109,6 +109,7 @@ public class FirmwareWizardPage extends WizardPage {
         GridData gd_officialFwRadioBtn = new GridData(SWT.LEFT, SWT.CENTER, true, false, 4, 1);
         gd_officialFwRadioBtn.verticalIndent = 10;
         officialFwRadioBtn.setLayoutData(gd_officialFwRadioBtn);
+        Utils.setFontBold(officialFwRadioBtn);
         officialFwRadioBtn.setText("Official firmware");
         officialFwRadioBtn.addSelectionListener(new SelectionAdapter() {
             @Override
@@ -181,6 +182,7 @@ public class FirmwareWizardPage extends WizardPage {
         GridData gd_customFwRadioBtn = new GridData(SWT.LEFT, SWT.CENTER, true, false, 4, 1);
         gd_customFwRadioBtn.verticalIndent = 10;
         customFwRadioBtn.setLayoutData(gd_customFwRadioBtn);
+        Utils.setFontBold(customFwRadioBtn);
         customFwRadioBtn.setText("Custom firmware");
         customFwRadioBtn.addSelectionListener(new SelectionAdapter() {
             @Override

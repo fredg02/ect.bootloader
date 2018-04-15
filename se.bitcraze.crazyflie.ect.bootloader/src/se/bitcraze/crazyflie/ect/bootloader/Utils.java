@@ -5,6 +5,11 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
+import org.eclipse.jface.resource.FontDescriptor;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Font;
+import org.eclipse.swt.widgets.Control;
+
 public class Utils {
 
     public static byte[] readBytes(File customFw) {
@@ -51,5 +56,11 @@ public class Utils {
             sb.append(",");
         }
         return sb.toString();
+    }
+
+    public static void setFontBold(Control control) {
+        FontDescriptor boldDescriptor = FontDescriptor.createFrom(control.getFont()).setStyle(SWT.BOLD);
+        Font boldFont = boldDescriptor.createFont(control.getDisplay());
+        control.setFont(boldFont);
     }
 }
