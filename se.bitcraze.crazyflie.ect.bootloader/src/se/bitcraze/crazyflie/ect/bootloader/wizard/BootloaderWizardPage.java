@@ -30,7 +30,7 @@ import se.bitcraze.crazyflie.lib.usb.UsbLinkJava;
 
 /**
  * Wizard page where the firmware is flashed
- * 
+ *
  * @author Frederic Gurr
  *
  */
@@ -63,15 +63,19 @@ public class BootloaderWizardPage extends WizardPage {
      * Create contents of the wizard.
      * @param parent
      */
+    @Override
     public void createControl(Composite parent) {
         Composite container = new Composite(parent, SWT.NULL);
         container.setLayout(new GridLayout(2, false));
 
         setControl(container);
 
+        int labelWidth = 130;
+
+        //CF type
         Label cfTypeLabel = new Label(container, SWT.NONE);
         GridData gd_cfTypeLabel = new GridData(SWT.LEFT, SWT.CENTER, false, false);
-        gd_cfTypeLabel.widthHint = 110;
+        gd_cfTypeLabel.widthHint = labelWidth;
         cfTypeLabel.setLayoutData(gd_cfTypeLabel);
         cfTypeLabel.setText("Crazyflie type:");
 
@@ -81,9 +85,10 @@ public class BootloaderWizardPage extends WizardPage {
         cfTypeValueLabel.setLayoutData(gd_cfTypeValueLabel);
         cfTypeValueLabel.setText("");
 
+        //Firmware image
         Label fwImageLabel = new Label(container, SWT.NONE);
         GridData gd_fwImageLabel = new GridData(SWT.LEFT, SWT.CENTER, false, false);
-        gd_fwImageLabel.widthHint = 110;
+        gd_fwImageLabel.widthHint = labelWidth;
         fwImageLabel.setLayoutData(gd_fwImageLabel);
         fwImageLabel.setText("Firmware file:");
 
@@ -93,9 +98,10 @@ public class BootloaderWizardPage extends WizardPage {
         fwImageValueLabel.setLayoutData(gd_fwImageValueLabel);
         fwImageValueLabel.setText("");
 
+        //Firmware type
         Label fwTypeLabel = new Label(container, SWT.NONE);
         GridData gd_fwTypeLabel = new GridData(SWT.LEFT, SWT.CENTER, false, false);
-        gd_fwTypeLabel.widthHint = 110;
+        gd_fwTypeLabel.widthHint = labelWidth;
         fwTypeLabel.setLayoutData(gd_fwTypeLabel);
         fwTypeLabel.setText("Firmware type:");
 
@@ -106,6 +112,7 @@ public class BootloaderWizardPage extends WizardPage {
         fwTypeValueLabel.setLayoutData(gd_fwTypeValueLabel);
         fwTypeValueLabel.setText("");
 
+        //Console
         console = new StyledText(container, SWT.MULTI | SWT.BORDER | SWT.WRAP | SWT.V_SCROLL);
         GridData gd_console = new GridData(SWT.FILL, SWT.FILL, true, false, 2, 1);
         gd_console.verticalIndent = 30;
@@ -121,6 +128,7 @@ public class BootloaderWizardPage extends WizardPage {
 //        progressBar = new ProgressBar(container, SWT.SMOOTH);
 //        progressBar.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
 
+        //Flash firmware button
         flashFirmwareButton = new Button(container, SWT.NONE);
         GridData gd_flashFirmwareButton = new GridData(SWT.RIGHT, SWT.CENTER, true, false, 2, 1);
         gd_flashFirmwareButton.minimumWidth = 110;
@@ -230,15 +238,15 @@ public class BootloaderWizardPage extends WizardPage {
                 String flashTime = "Flashing took " + (System.currentTimeMillis() - startTime)/1000 + " seconds.\n";
                 //Log.d(LOG_TAG, flashTime);
                 appendConsole(flashSuccessful ? ("Flashing successful. " + flashTime) : "Flashing not successful.\n");
-                
+
                 stopFlashProcess(true);
-                
+
                 return Status.OK_STATUS;
             }
         };
         flashJob.setUser(true);
         flashJob.addJobChangeListener(new JobChangeAdapter() {
-            
+
             @Override
             public void running(IJobChangeEvent event) {
                 flashFirmwareButton.getDisplay().asyncExec(new Runnable() {
@@ -248,7 +256,7 @@ public class BootloaderWizardPage extends WizardPage {
                     }
                 });
             }
-            
+
             @Override
             public void done(IJobChangeEvent event) {
                 flashFirmwareButton.getDisplay().asyncExec(new Runnable() {
@@ -264,7 +272,7 @@ public class BootloaderWizardPage extends WizardPage {
 
     /**
      * Check if official firmware is compatible with Crazyflie
-     * 
+     *
      * @return true if compatible, false otherwise
      */
     private boolean isFirmwareCompatible() {
@@ -327,9 +335,13 @@ public class BootloaderWizardPage extends WizardPage {
             cfTypeValueLabel.setText(cfType);
             // fw path
             String fwPath = "";
+            String toolTip = "";
             if (pageOne.isCustomFirmware()) {
                 customFirmwareFile = pageOne.getFirmwareFile();
-                fwPath = customFirmwareFile.getPath();
+                if (customFirmwareFile != null) {
+                    fwPath = customFirmwareFile.getName();
+                    toolTip = customFirmwareFile.getPath();
+                }
             } else {
                 selectedOfficialFirmware = pageOne.getFirmware();
                 if (selectedOfficialFirmware != null) {
@@ -337,6 +349,7 @@ public class BootloaderWizardPage extends WizardPage {
                 }
             }
             fwImageValueLabel.setText(fwPath);
+            fwImageValueLabel.setToolTipText(toolTip);
             // fw type
             String fwType = "";
             if (pageOne.isCustomFirmware()) {

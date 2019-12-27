@@ -27,6 +27,7 @@ public class BootloaderWizard extends Wizard {
         setDefaultPageImageDescriptor(getWizardLogo());
     }
 
+    @Override
     public void addPages() {
         fwPage = new FirmwareWizardPage();
         bootloaderPage = new BootloaderWizardPage();
@@ -37,6 +38,7 @@ public class BootloaderWizard extends Wizard {
     @Override
     public boolean performFinish() {
         IRunnableWithProgress op = new IRunnableWithProgress() {
+            @Override
             public void run(IProgressMonitor monitor) throws InvocationTargetException {
                 try {
                     doFinish(monitor);
@@ -65,6 +67,7 @@ public class BootloaderWizard extends Wizard {
         monitor.worked(1);
     }
 
+    @Override
     public boolean canFinish() {
         if(getContainer().getCurrentPage() == fwPage) {
             return false;

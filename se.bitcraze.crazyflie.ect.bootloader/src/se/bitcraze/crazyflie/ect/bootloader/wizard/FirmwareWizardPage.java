@@ -32,10 +32,10 @@ import se.bitcraze.crazyflie.ect.bootloader.firmware.Firmware;
 import se.bitcraze.crazyflie.ect.bootloader.firmware.FirmwareDownloader;
 
 /**
- * Wizard page where the firmware is selected 
- * 
+ * Wizard page where the firmware is selected
+ *
  * @author Frederic Gurr
- * 
+ *
  */
 public class FirmwareWizardPage extends WizardPage {
 
@@ -83,6 +83,7 @@ public class FirmwareWizardPage extends WizardPage {
      * Create contents of the wizard.
      * @param parent
      */
+    @Override
     public void createControl(Composite parent) {
         Composite container = new Composite(parent, SWT.NULL);
         container.setLayout(new GridLayout(4, false));
@@ -147,10 +148,11 @@ public class FirmwareWizardPage extends WizardPage {
         officialFwCombo = new Combo(pContainer, SWT.READ_ONLY);
         GridData gd_officialFwCombo = new GridData(SWT.FILL, SWT.CENTER, true, true, 3, 1);
         gd_officialFwCombo.minimumWidth = 100;
-        gd_officialFwCombo.minimumHeight = 15;
+        gd_officialFwCombo.minimumHeight = 35;
         officialFwCombo.setLayoutData(gd_officialFwCombo);
 
         officialFwCombo.addListener(SWT.Selection, new Listener() {
+            @Override
             public void handleEvent(Event event) {
                 if (officialFwRadioBtn.getSelection() && officialFwCombo.getSelectionIndex() != -1) {
                     mSelectedFirmware = mFilteredFirmwares.get(officialFwCombo.getSelectionIndex());
@@ -173,7 +175,9 @@ public class FirmwareWizardPage extends WizardPage {
         officialFwReleaseDateLabel.setLayoutData(gd_officialFwReleaseDateLabel);
         officialFwReleaseDateLabel.setText("Release date:");
         officialFwReleaseDateValueLabel = new Label(pContainer, SWT.NONE);
-        officialFwReleaseDateValueLabel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 3, 1));
+        GridData gd_officialFwReleaseDateValueLabel = new GridData(SWT.FILL, SWT.CENTER, true, false, 3, 1);
+        gd_officialFwReleaseDateValueLabel.minimumHeight = 35;
+        officialFwReleaseDateValueLabel.setLayoutData(gd_officialFwReleaseDateValueLabel);
         officialFwReleaseDateValueLabel.setText("");
 
         Label officialFwReleaseNotesLabel = new Label(pContainer, SWT.NONE);
@@ -307,7 +311,6 @@ public class FirmwareWizardPage extends WizardPage {
                         @Override
                         public void run() {
                             fillOfficialFwComboBox();
-                            
                         }
                     } );
                     return Status.OK_STATUS;
