@@ -22,4 +22,10 @@ jobs:
       uses: actions/upload-artifact@v1
       with:
         name: ECT Bootloader repository
-        path: se.bitcraze.crazyflie.ect.bootloader-repository/target/se.bitcraze.crazyflie.ect.bootloader-repository-*.zip
+        path: /home/runner/work/ect.bootloader/ect.bootloader/se.bitcraze.crazyflie.ect.bootloader-repository/target/se.bitcraze.crazyflie.ect.bootloader-repository-*.zip
+    - name: SonarCloud Scan
+      uses: sonarsource/sonarcloud-github-action@master
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        
