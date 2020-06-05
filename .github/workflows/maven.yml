@@ -19,10 +19,10 @@ jobs:
     - name: Build with Maven
       run: mvn -B clean verify --file se.bitcraze.crazyflie.ect.bootloader-parent/pom.xml
     - name: Archive artifacts
-      uses: actions/upload-artifact@v1
+      uses: actions/upload-artifact@v2
       with:
-        name: ECT Bootloader repository
-        path: /home/runner/work/ect.bootloader/ect.bootloader/se.bitcraze.crazyflie.ect.bootloader-repository/target/se.bitcraze.crazyflie.ect.bootloader-repository-*.zip
+        name: 'ECT Bootloader repository'
+        path: se.bitcraze.crazyflie.ect.bootloader-repository/target/se.bitcraze.crazyflie.ect.bootloader-repository-*.zip
     - name: SonarCloud Scan
       uses: sonarsource/sonarcloud-github-action@master
       env:
