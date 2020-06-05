@@ -25,6 +25,8 @@ jobs:
         path: se.bitcraze.crazyflie.ect.bootloader-repository/target/se.bitcraze.crazyflie.ect.bootloader-repository-*.zip
     - name: SonarCloud Scan
       uses: sonarsource/sonarcloud-github-action@master
+      with:
+        projectBaseDir: se.bitcraze.crazyflie.ect.bootloader/
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
